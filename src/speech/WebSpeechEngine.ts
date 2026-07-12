@@ -54,6 +54,20 @@ export class WebSpeechEngine implements SpeechEngine {
 
   private recognition: SpeechRecognition | null = null;
 
+  private mapError(error: string): string {
+    switch (error.toLowerCase()) {
+      case 'not-allowed':
+      case 'service-not-allowed':
+        return 'Permís de micròfon denegat. Activa el micròfon al navegador i torna-ho a provar.';
+      case 'audio-capture':
+        return 'No s\'ha detectat cap micròfon disponible.';
+      case 'no-speech':
+        return 'No s\'ha detectat veu. Torna-ho a provar.';
+      default:
+        return error;
+    }
+  }
+
   isSupported(): boolean {
     return !!(window.SpeechRecognition ?? window.webkitSpeechRecognition);
   }
@@ -61,6 +75,10 @@ export class WebSpeechEngine implements SpeechEngine {
   start(options: Partial<SpeechEngineOptions> = {}): void {
     if (!this.isSupported()) {
       this.onError?.('Web Speech API no disponible en aquest navegador');
+      return;
+    }
+    if (!window.isSecureContext) {
+      this.onError?.('El reconeixement de veu necessita una connexió segura (HTTPS o localhost).');
       return;
     }
 
@@ -84,7 +102,7 @@ export class WebSpeechEngine implements SpeechEngine {
     };
 
     this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      this.onError?.(event.error);
+      this.onError?.(this.mapError(event.error));
     };
 
     this.recognition.onend = () => {
