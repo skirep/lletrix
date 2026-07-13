@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { profileStorage, loadProfilesFromSupabase, loadRankings } from '../storage';
 import type { Profile, ProfileStats } from '../models';
 import type { RankingEntry } from '../storage';
@@ -8,7 +8,7 @@ export function useProfiles(userId?: string) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       if (userId) {
@@ -28,11 +28,11 @@ export function useProfiles(userId?: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
-  useEffect(() => { void load(); }, [userId]);
+  useEffect(() => { void load(); }, [load]);
 
-  const createProfile = async (name: string, avatar: string) => {
+  const createProfile = useCallback(async (name: string, avatar: string) => {
     const profile: Profile = {
       id: generateId(),
       userId,
@@ -44,17 +44,17 @@ export function useProfiles(userId?: string) {
     await profileStorage.create(profile);
     await load();
     return profile;
-  };
+  }, [userId, load]);
 
-  const updateProfile = async (profile: Profile) => {
+  const updateProfile = useCallback(async (profile: Profile) => {
     await profileStorage.update(profile);
     setProfiles((prev) => prev.map((p) => p.id === profile.id ? profile : p));
-  };
+  }, []);
 
-  const deleteProfile = async (id: string) => {
+  const deleteProfile = useCallback(async (id: string) => {
     await profileStorage.delete(id);
     setProfiles((prev) => prev.filter((p) => p.id !== id));
-  };
+  }, []);
 
   return { profiles, loading, createProfile, updateProfile, deleteProfile, refresh: load };
 }

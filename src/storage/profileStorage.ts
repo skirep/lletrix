@@ -15,7 +15,7 @@ async function syncToSupabase(profile: Profile): Promise<void> {
     location: profile.location ?? null,
     created_at: profile.createdAt,
     updated_at: profile.updatedAt,
-  });
+  }, { onConflict: 'id' });
   if (error) {
     console.error('Failed to sync profile to Supabase:', error.message);
   }
@@ -34,7 +34,7 @@ async function syncRankingToSupabase(profile: Profile, stats: ProfileStats): Pro
     experience: stats.experience,
     total_exercises: stats.totalExercises,
     updated_at: Date.now(),
-  });
+  }, { onConflict: 'profile_id' });
   if (error) {
     console.error('Failed to sync ranking to Supabase:', error.message);
   }
@@ -125,9 +125,12 @@ export const profileStorage = {
 
   async update(profile: Profile): Promise<void> {
     await db.profiles.put(profile);
-    void syncToSupabase(profile);
     const stats = await db.profileStats.get(profile.id);
-    if (stats) void syncRankingToSupabase(profile, stats);
+    if (stats) {
+      void syncRankingToSupabase(profile, stats);
+    } else {
+      void syncToSupabase(profile);
+    }
   },
 
   async delete(id: string): Promise<void> {
