@@ -14,8 +14,125 @@
   padding-top: 48px;
 }
 
+.emptyPersonal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 24px 0;
+}
+
 .emptyIcon {
   font-size: 64px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 4px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: calc(var(--radius-md) - 2px);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tabActive {
+  background: var(--color-bg);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.rankingsEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 24px 0;
+  font-size: 40px;
+}
+
+.rankingsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rankingCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+}
+
+.rankingCardMe {
+  border: 2px solid var(--color-primary) !important;
+  background: rgba(99, 102, 241, 0.04) !important;
+}
+
+.rankingPos {
+  font-size: 22px;
+  min-width: 36px;
+  text-align: center;
+}
+
+.rankingInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.rankingName {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rankingMeTag {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.rankingMeta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rankingStats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.rankingLevel {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.rankingXp {
+  font-size: 12px;
+  color: var(--color-text-muted);
 }
 
 .summaryGrid {

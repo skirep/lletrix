@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { profileStorage, loadProfilesFromSupabase } from '../storage';
+import { profileStorage, loadProfilesFromSupabase, loadRankings } from '../storage';
 import type { Profile, ProfileStats } from '../models';
+import type { RankingEntry } from '../storage';
 import { generateId } from '../utils';
 
 export function useProfiles(userId?: string) {
@@ -65,4 +66,18 @@ export function useProfileStats(profileId: string | null) {
   }, [profileId]);
 
   return stats;
+}
+
+export function useRankings() {
+  const [rankings, setRankings] = useState<RankingEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadRankings().then((data) => {
+      setRankings(data);
+      setLoading(false);
+    });
+  }, []);
+
+  return { rankings, loading };
 }

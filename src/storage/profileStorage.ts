@@ -11,9 +11,54 @@ async function syncToSupabase(profile: Profile): Promise<void> {
     user_id: user.id,
     name: profile.name,
     avatar: profile.avatar,
+    school: profile.school ?? null,
+    location: profile.location ?? null,
     created_at: profile.createdAt,
     updated_at: profile.updatedAt,
   });
+}
+
+async function syncRankingToSupabase(profile: Profile, stats: ProfileStats): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase.from('rankings').upsert({
+    profile_id: profile.id,
+    display_name: profile.name,
+    school: profile.school ?? null,
+    location: profile.location ?? null,
+    level: stats.level,
+    experience: stats.experience,
+    total_exercises: stats.totalExercises,
+    updated_at: Date.now(),
+  });
+}
+
+export interface RankingEntry {
+  profileId: string;
+  displayName: string;
+  school?: string;
+  location?: string;
+  level: number;
+  experience: number;
+  totalExercises: number;
+}
+
+export async function loadRankings(): Promise<RankingEntry[]> {
+  const { data, error } = await supabase
+    .from('rankings')
+    .select('*')
+    .order('experience', { ascending: false })
+    .limit(100);
+  if (error || !data) return [];
+  return data.map((r) => ({
+    profileId: r.profile_id as string,
+    displayName: r.display_name as string,
+    school: (r.school as string | null) ?? undefined,
+    location: (r.location as string | null) ?? undefined,
+    level: r.level as number,
+    experience: r.experience as number,
+    totalExercises: r.total_exercises as number,
+  }));
 }
 
 async function deleteFromSupabase(id: string): Promise<void> {
@@ -34,6 +79,8 @@ export async function loadProfilesFromSupabase(userId: string): Promise<Profile[
     userId: r.user_id as string,
     name: r.name as string,
     avatar: r.avatar as string,
+    school: (r.school as string | null) ?? undefined,
+    location: (r.location as string | null) ?? undefined,
     createdAt: r.created_at as number,
     updatedAt: r.updated_at as number,
   }));
@@ -72,6 +119,8 @@ export const profileStorage = {
   async update(profile: Profile): Promise<void> {
     await db.profiles.put(profile);
     void syncToSupabase(profile);
+    const stats = await db.profileStats.get(profile.id);
+    if (stats) void syncRankingToSupabase(profile, stats);
   },
 
   async delete(id: string): Promise<void> {
@@ -106,5 +155,7 @@ export const profileStorage = {
 
   async updateStats(stats: ProfileStats): Promise<void> {
     await db.profileStats.put(stats);
+    const profile = await db.profiles.get(stats.profileId);
+    if (profile) void syncRankingToSupabase(profile, stats);
   },
 };

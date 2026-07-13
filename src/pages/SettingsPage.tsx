@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import styles from './SettingsPage.module.css';
 import { useSettings } from '../hooks';
 import type { Profile, FontSize, ColorScheme } from '../models';
 
 interface SettingsPageProps {
   profile: Profile;
+  onUpdateProfile: (profile: Profile) => Promise<void>;
 }
 
 const FONT_SIZES: { id: FontSize; label: string }[] = [
@@ -27,14 +29,83 @@ const READING_SPEEDS: { id: number; label: string }[] = [
   { id: 8, label: 'Molt tranquil·la (8s)' },
 ];
 
-export function SettingsPage({ profile }: SettingsPageProps) {
+export function SettingsPage({ profile, onUpdateProfile }: SettingsPageProps) {
   const { settings, update } = useSettings(profile.id);
+  const [name, setName] = useState(profile.name);
+  const [school, setSchool] = useState(profile.school ?? '');
+  const [location, setLocation] = useState(profile.location ?? '');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const handleProfileSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setSaving(true);
+    await onUpdateProfile({
+      ...profile,
+      name: name.trim(),
+      school: school.trim() || undefined,
+      location: location.trim() || undefined,
+      updatedAt: Date.now(),
+    });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   return (
     <div className={`page ${styles.page}`}>
       <h1 className="page-title">Ajustos</h1>
 
-      {/* Font size */}
+      {/* Profile */}
+      <section className={`card ${styles.section}`}>
+        <h2 className={styles.sectionTitle}>Perfil</h2>
+        <form className={styles.profileForm} onSubmit={(e) => void handleProfileSave(e)}>
+          <div className={styles.profileField}>
+            <label className={styles.profileLabel} htmlFor="settings-name">Nom d&apos;usuari</label>
+            <input
+              id="settings-name"
+              className={styles.profileInput}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={30}
+              placeholder="El teu nom..."
+            />
+          </div>
+          <div className={styles.profileField}>
+            <label className={styles.profileLabel} htmlFor="settings-school">Escola</label>
+            <input
+              id="settings-school"
+              className={styles.profileInput}
+              type="text"
+              value={school}
+              onChange={(e) => setSchool(e.target.value)}
+              maxLength={60}
+              placeholder="Nom de l'escola (opcional)"
+            />
+          </div>
+          <div className={styles.profileField}>
+            <label className={styles.profileLabel} htmlFor="settings-location">Població</label>
+            <input
+              id="settings-location"
+              className={styles.profileInput}
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              maxLength={60}
+              placeholder="Població (opcional)"
+            />
+          </div>
+          <button
+            type="submit"
+            className={`${styles.saveBtn} ${saved ? styles.saveBtnDone : ''}`}
+            disabled={saving || !name.trim()}
+          >
+            {saved ? '✅ Guardat!' : saving ? 'Guardant...' : 'Guardar perfil'}
+          </button>
+        </form>
+      </section>
       <section className={`card ${styles.section}`}>
         <h2 className={styles.sectionTitle}>Mida de la lletra</h2>
         <div className={styles.optionGrid}>

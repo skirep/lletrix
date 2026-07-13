@@ -1,4 +1,4 @@
-export { useProfiles, useProfileStats } from './useProfiles';
+export { useProfiles, useProfileStats, useRankings } from './useProfiles';
 export { useSpeechRecognition } from './useSpeechRecognition';
 export { useSettings } from './useSettings';
 export { useGamification } from './useGamification';
