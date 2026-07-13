@@ -3,6 +3,21 @@ import type { Profile, ProfileStats } from '../models';
 import { getLevelFromXp } from '../models';
 import { supabase } from '../lib/supabase';
 
+function createEmptyProfileStats(profileId: string): ProfileStats {
+  return {
+    profileId,
+    totalExercises: 0,
+    totalCorrect: 0,
+    totalAttempts: 0,
+    totalTimeMs: 0,
+    consecutiveDays: 0,
+    lastSessionDate: 0,
+    experience: 0,
+    level: 1,
+    errorFrequency: {},
+  };
+}
+
 async function syncToSupabase(profile: Profile): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
@@ -80,7 +95,8 @@ export async function loadProfilesFromSupabase(userId: string): Promise<Profile[
     .select('*')
     .eq('user_id', userId)
     .order('name');
-  if (error || !data) return [];
+  if (error) throw new Error(error.message);
+  if (!data) return [];
   return data.map((r) => ({
     id: r.id as string,
     userId: r.user_id as string,
@@ -107,20 +123,16 @@ export const profileStorage = {
 
   async create(profile: Profile): Promise<void> {
     await db.profiles.add(profile);
-    const stats: ProfileStats = {
-      profileId: profile.id,
-      totalExercises: 0,
-      totalCorrect: 0,
-      totalAttempts: 0,
-      totalTimeMs: 0,
-      consecutiveDays: 0,
-      lastSessionDate: 0,
-      experience: 0,
-      level: 1,
-      errorFrequency: {},
-    };
-    await db.profileStats.add(stats);
+    await db.profileStats.add(createEmptyProfileStats(profile.id));
     void syncToSupabase(profile);
+  },
+
+  async upsertFromCloud(profile: Profile): Promise<void> {
+    await db.profiles.put(profile);
+    const stats = await db.profileStats.get(profile.id);
+    if (!stats) {
+      await db.profileStats.add(createEmptyProfileStats(profile.id));
+    }
   },
 
   async update(profile: Profile): Promise<void> {

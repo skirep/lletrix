@@ -1,0 +1,6 @@
+.statusIndicator {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  right: 16px;
+  z-index: 200;
+}
