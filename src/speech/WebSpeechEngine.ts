@@ -85,6 +85,14 @@ export class WebSpeechEngine implements SpeechEngine {
     const SpeechRecognitionCtor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!SpeechRecognitionCtor) return;
 
+    // Nullify handlers on any previous recognition to prevent stale callbacks
+    // from the old session firing through the engine's current onResult callback.
+    if (this.recognition) {
+      this.recognition.onresult = null;
+      this.recognition.onerror = null;
+      this.recognition.onend = null;
+    }
+
     this.recognition = new SpeechRecognitionCtor();
     this.recognition.lang = options.language ?? 'ca-ES';
     this.recognition.continuous = options.continuous ?? false;
@@ -113,6 +121,13 @@ export class WebSpeechEngine implements SpeechEngine {
   }
 
   stop(): void {
-    this.recognition?.stop();
+    if (this.recognition) {
+      // Nullify handlers before aborting so no late callbacks fire
+      this.recognition.onresult = null;
+      this.recognition.onerror = null;
+      this.recognition.onend = null;
+      this.recognition.abort();
+      this.recognition = null;
+    }
   }
 }
