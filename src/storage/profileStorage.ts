@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 async function syncToSupabase(profile: Profile): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
-  await supabase.from('profiles').upsert({
+  const { error } = await supabase.from('profiles').upsert({
     id: profile.id,
     user_id: user.id,
     name: profile.name,
@@ -16,12 +16,16 @@ async function syncToSupabase(profile: Profile): Promise<void> {
     created_at: profile.createdAt,
     updated_at: profile.updatedAt,
   });
+  if (error) {
+    console.error('Failed to sync profile to Supabase:', error.message);
+  }
 }
 
 async function syncRankingToSupabase(profile: Profile, stats: ProfileStats): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
-  await supabase.from('rankings').upsert({
+  await syncToSupabase(profile);
+  const { error } = await supabase.from('rankings').upsert({
     profile_id: profile.id,
     display_name: profile.name,
     school: profile.school ?? null,
@@ -31,6 +35,9 @@ async function syncRankingToSupabase(profile: Profile, stats: ProfileStats): Pro
     total_exercises: stats.totalExercises,
     updated_at: Date.now(),
   });
+  if (error) {
+    console.error('Failed to sync ranking to Supabase:', error.message);
+  }
 }
 
 export interface RankingEntry {
