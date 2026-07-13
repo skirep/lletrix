@@ -4,26 +4,45 @@ import type { Profile, ProfileStats } from '../models';
 import type { RankingEntry } from '../storage';
 import { generateId } from '../utils';
 
+export type DatabaseReadStatus = 'idle' | 'loading' | 'success' | 'error';
+
 export function useProfiles(userId?: string) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [databaseReadStatus, setDatabaseReadStatus] = useState<DatabaseReadStatus>('idle');
+  const [databaseReadError, setDatabaseReadError] = useState<string | null>(null);
+  const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       if (userId) {
+        setDatabaseReadStatus('loading');
+        setDatabaseReadError(null);
         const cloud = await loadProfilesFromSupabase(userId);
         for (const p of cloud) {
-          const existing = await profileStorage.getById(p.id);
-          if (!existing) {
-            await profileStorage.create(p);
-          }
+          await profileStorage.upsertFromCloud(p);
         }
         const local = await profileStorage.getAll(userId);
         setProfiles(local.length > 0 ? local : cloud);
+        setDatabaseReadStatus('success');
+        setLoadedUserId(userId);
       } else {
+        setDatabaseReadStatus('idle');
+        setDatabaseReadError(null);
+        setLoadedUserId(null);
         const data = await profileStorage.getAll();
         setProfiles(data);
+      }
+    } catch (error) {
+      if (userId) {
+        const local = await profileStorage.getAll(userId);
+        setProfiles(local);
+        setDatabaseReadStatus('error');
+        setDatabaseReadError(error instanceof Error ? error.message : 'No s’han pogut llegir les dades de la base de dades.');
+        setLoadedUserId(userId);
+      } else {
+        throw error;
       }
     } finally {
       setLoading(false);
@@ -56,7 +75,17 @@ export function useProfiles(userId?: string) {
     setProfiles((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
-  return { profiles, loading, createProfile, updateProfile, deleteProfile, refresh: load };
+  return {
+    profiles,
+    loading,
+    createProfile,
+    updateProfile,
+    deleteProfile,
+    refresh: load,
+    databaseReadStatus,
+    databaseReadError,
+    loadedUserId,
+  };
 }
 
 export function useProfileStats(profileId: string | null) {
