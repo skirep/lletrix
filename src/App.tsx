@@ -9,7 +9,7 @@ import { BadgesPage } from './pages/BadgesPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { BottomNav } from './components/layout';
 import { LoadingSpinner } from './components/common';
-import { useSettings } from './hooks';
+import { useSettings, useProfiles } from './hooks';
 import type { Profile } from './models';
 
 type Page = 'home' | 'exercises' | 'stats' | 'badges' | 'settings';
@@ -29,13 +29,33 @@ function AppSettings({ profileId }: { profileId: string }) {
 function AppContent() {
   const { user, loading: authLoading } = useAuth();
   const { currentProfile, setCurrentProfile } = useAppContext();
+  const { profiles, loading: profilesLoading, createProfile } = useProfiles(user?.id);
   const [page, setPage] = useState<Page>('home');
+  const [autoHandling, setAutoHandling] = useState(false);
 
   useEffect(() => {
-    if (!user) setCurrentProfile(null);
+    if (!user) {
+      setCurrentProfile(null);
+    }
   }, [user, setCurrentProfile]);
 
-  if (authLoading) return <LoadingSpinner />;
+  useEffect(() => {
+    if (!user || profilesLoading || currentProfile || autoHandling) return;
+
+    if (profiles.length === 1) {
+      setCurrentProfile(profiles[0]);
+    } else if (profiles.length === 0) {
+      setAutoHandling(true);
+      const rawName = user.email?.split('@')[0] ?? 'Jugador';
+      const name = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+      createProfile(name, 'cat').then((p) => {
+        setCurrentProfile(p);
+        setAutoHandling(false);
+      });
+    }
+  }, [profiles, profilesLoading, user, currentProfile, autoHandling, createProfile, setCurrentProfile]);
+
+  if (authLoading || (user && profilesLoading) || autoHandling) return <LoadingSpinner />;
 
   if (!user) return <AuthPage />;
 
