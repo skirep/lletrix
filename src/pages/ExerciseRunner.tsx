@@ -42,15 +42,9 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
     setPhase('result');
   }, [stop]);
 
-  // When transcript is available and we're done listening, evaluate
+  // When recognition ends automatically, evaluate and transition to result phase
   useEffect(() => {
     if (!isListening && transcript && phase === 'listening') {
-      setPhase('result');
-    }
-  }, [isListening, transcript, phase]);
-
-  useEffect(() => {
-    if (phase === 'result' && transcript) {
       const timeMs = Date.now() - startTimeRef.current;
       const similarity = calculateSimilarity(currentItem.text, transcript);
       const result = classifyResult(similarity);
@@ -67,9 +61,9 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
         timestamp: Date.now(),
       };
       setAttempts((prev) => [...prev, attempt]);
+      setPhase('result');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
+  }, [isListening, transcript, phase, currentItem]);
 
   const handleNext = async () => {
     if (index + 1 >= items.length) {
