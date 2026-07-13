@@ -29,7 +29,7 @@ function AppSettings({ profileId }: { profileId: string }) {
 function AppContent() {
   const { user, loading: authLoading } = useAuth();
   const { currentProfile, setCurrentProfile } = useAppContext();
-  const { profiles, loading: profilesLoading, createProfile } = useProfiles(user?.id);
+  const { profiles, loading: profilesLoading, createProfile, updateProfile } = useProfiles(user?.id);
   const [page, setPage] = useState<Page>('home');
   const [autoHandling, setAutoHandling] = useState(false);
 
@@ -74,7 +74,7 @@ function AppContent() {
       case 'exercises': return <ExercisesPage profile={currentProfile} />;
       case 'stats': return <StatsPage profile={currentProfile} />;
       case 'badges': return <BadgesPage profile={currentProfile} />;
-      case 'settings': return <SettingsPage profile={currentProfile} />;
+      case 'settings': return <SettingsPage profile={currentProfile} onUpdateProfile={async (p) => { await updateProfile(p); setCurrentProfile(p); }} />;
     }
   };
 

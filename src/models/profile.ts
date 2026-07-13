@@ -3,6 +3,8 @@ export interface Profile {
   userId?: string;
   name: string;
   avatar: string;
+  school?: string;
+  location?: string;
   createdAt: number;
   updatedAt: number;
 }
