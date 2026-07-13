@@ -10,22 +10,24 @@ export function useProfiles(userId?: string) {
 
   const load = async () => {
     setLoading(true);
-    if (userId) {
-      const cloud = await loadProfilesFromSupabase(userId);
-      for (const p of cloud) {
-        await profileStorage.getById(p.id).then(async (existing) => {
+    try {
+      if (userId) {
+        const cloud = await loadProfilesFromSupabase(userId);
+        for (const p of cloud) {
+          const existing = await profileStorage.getById(p.id);
           if (!existing) {
             await profileStorage.create(p);
           }
-        });
+        }
+        const local = await profileStorage.getAll(userId);
+        setProfiles(local.length > 0 ? local : cloud);
+      } else {
+        const data = await profileStorage.getAll();
+        setProfiles(data);
       }
-      const local = await profileStorage.getAll(userId);
-      setProfiles(local.length > 0 ? local : cloud);
-    } else {
-      const data = await profileStorage.getAll();
-      setProfiles(data);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => { void load(); }, [userId]);
@@ -46,12 +48,12 @@ export function useProfiles(userId?: string) {
 
   const updateProfile = async (profile: Profile) => {
     await profileStorage.update(profile);
-    await load();
+    setProfiles((prev) => prev.map((p) => p.id === profile.id ? profile : p));
   };
 
   const deleteProfile = async (id: string) => {
     await profileStorage.delete(id);
-    await load();
+    setProfiles((prev) => prev.filter((p) => p.id !== id));
   };
 
   return { profiles, loading, createProfile, updateProfile, deleteProfile, refresh: load };
