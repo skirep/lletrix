@@ -14,7 +14,7 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: Omit<AppSettings, 'profileId'> = {
-  speed: 1,
+  speed: 4,
   fontSize: 'large',
   fontFamily: 'standard',
   colorScheme: 'default',

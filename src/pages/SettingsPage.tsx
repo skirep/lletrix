@@ -20,6 +20,13 @@ const COLOR_SCHEMES: { id: ColorScheme; label: string; emoji: string }[] = [
   { id: 'cool', label: 'Fresquet', emoji: '🔵' },
 ];
 
+const READING_SPEEDS: { id: number; label: string }[] = [
+  { id: 2, label: 'Ràpida (2s)' },
+  { id: 4, label: 'Normal (4s)' },
+  { id: 6, label: 'Tranquil·la (6s)' },
+  { id: 8, label: 'Molt tranquil·la (8s)' },
+];
+
 export function SettingsPage({ profile }: SettingsPageProps) {
   const { settings, update } = useSettings(profile.id);
 
@@ -75,6 +82,25 @@ export function SettingsPage({ profile }: SettingsPageProps) {
           >
             Dislèxia
           </button>
+        </div>
+      </section>
+
+      {/* Reading speed */}
+      <section className={`card ${styles.section}`}>
+        <h2 className={styles.sectionTitle}>Velocitat de lectura</h2>
+        <p className="text-muted" style={{ fontSize: '14px' }}>
+          Temps per llegir cada síl·laba, paraula o frase
+        </p>
+        <div className={styles.optionGrid}>
+          {READING_SPEEDS.map((speed) => (
+            <button
+              key={speed.id}
+              className={`${styles.optBtn} ${settings.speed === speed.id ? styles.optSelected : ''}`}
+              onClick={() => void update({ speed: speed.id })}
+            >
+              {speed.label}
+            </button>
+          ))}
         </div>
       </section>
 

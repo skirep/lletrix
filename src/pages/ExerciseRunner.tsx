@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import styles from './ExerciseRunner.module.css';
-import { ExerciseText, MicrophoneButton, ResultFeedback } from '../components/exercise';
+import { ExerciseText, ResultFeedback } from '../components/exercise';
 import { Button } from '../components/common';
-import { useSpeechRecognition } from '../hooks';
+import { useSettings, useSpeechRecognition } from '../hooks';
 import { calculateSimilarity, classifyResult, detectErrors, calculateScore } from '../scoring';
 import { sessionStorage } from '../storage';
 import { gamificationService } from '../gamification';
@@ -16,35 +16,101 @@ interface ExerciseRunnerProps {
   onFinish: () => void;
 }
 
+const RESULT_DISPLAY_MS = 1200;
+
 export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) {
   const [items] = useState(() => shuffleItems(set.items));
   const [index, setIndex] = useState(0);
   const [attempts, setAttempts] = useState<ExerciseAttempt[]>([]);
   const [lastResult, setLastResult] = useState<{ result: ReadingResult; recognized: string; similarity: number } | null>(null);
   const [phase, setPhase] = useState<'ready' | 'listening' | 'result' | 'done'>('ready');
+  const [timeLeftMs, setTimeLeftMs] = useState(0);
   const startTimeRef = useRef<number>(0);
   const sessionStartRef = useRef<number>(Date.now());
+  const itemDeadlineRef = useRef<number>(0);
+  const readTimeoutRef = useRef<number | null>(null);
+  const nextTimeoutRef = useRef<number | null>(null);
+  const attemptsRef = useRef<ExerciseAttempt[]>([]);
+  const completingRef = useRef(false);
 
+  const { settings } = useSettings(profile.id);
   const { transcript, isListening, error, isSupported, start, stop, setTranscript } = useSpeechRecognition();
 
   const currentItem = items[index];
 
-  const handleStartListening = useCallback(() => {
+  const clearTimer = useCallback((timer: { current: number | null }) => {
+    if (timer.current !== null) {
+      window.clearTimeout(timer.current);
+      timer.current = null;
+    }
+  }, []);
+
+  const completeSession = useCallback(async (finalAttempts: ExerciseAttempt[]) => {
+    if (completingRef.current) return;
+    completingRef.current = true;
+    const completedAt = Date.now();
+    const correctItems = finalAttempts.filter((a) => a.result === 'correct').length;
+    const totalItems = finalAttempts.length;
+    const score = calculateScore(correctItems, totalItems);
+    const avgTime = finalAttempts.length > 0
+      ? finalAttempts.reduce((s, a) => s + a.timeMs, 0) / finalAttempts.length
+      : 0;
+
+    const session: ExerciseSession = {
+      id: generateId(),
+      profileId: profile.id,
+      setId: set.id,
+      type: set.type,
+      difficulty: set.difficulty,
+      attempts: finalAttempts,
+      startedAt: sessionStartRef.current,
+      completedAt,
+      score,
+      totalItems,
+      correctItems,
+      averageTimeMs: avgTime,
+    };
+    await sessionStorage.save(session);
+    await gamificationService.processSession(session);
+    setPhase('done');
+  }, [profile.id, set.id, set.type, set.difficulty]);
+
+  useEffect(() => {
+    attemptsRef.current = attempts;
+  }, [attempts]);
+
+  useEffect(() => {
+    if (phase !== 'ready') return;
     setTranscript('');
     setLastResult(null);
+    const durationMs = Math.max(1000, Math.round(settings.speed * 1000));
     startTimeRef.current = Date.now();
+    itemDeadlineRef.current = startTimeRef.current + durationMs;
+    setTimeLeftMs(durationMs);
     setPhase('listening');
     start();
-  }, [start, setTranscript]);
+    readTimeoutRef.current = window.setTimeout(() => {
+      stop();
+      setTimeLeftMs(0);
+    }, durationMs);
 
-  const handleStopListening = useCallback(() => {
-    stop();
-    setPhase('result');
-  }, [stop]);
+    return () => {
+      clearTimer(readTimeoutRef);
+    };
+  }, [phase, settings.speed, start, stop, setTranscript, clearTimer]);
+
+  useEffect(() => {
+    if (phase !== 'listening') return;
+    const intervalId = window.setInterval(() => {
+      setTimeLeftMs(Math.max(0, itemDeadlineRef.current - Date.now()));
+    }, 100);
+    return () => window.clearInterval(intervalId);
+  }, [phase]);
 
   // When recognition ends automatically, evaluate and transition to result phase
   useEffect(() => {
-    if (!isListening && transcript && phase === 'listening') {
+    if (!isListening && phase === 'listening') {
+      clearTimer(readTimeoutRef);
       const timeMs = Date.now() - startTimeRef.current;
       const similarity = calculateSimilarity(currentItem.text, transcript);
       const result = classifyResult(similarity);
@@ -60,46 +126,35 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
         timeMs,
         timestamp: Date.now(),
       };
-      setAttempts((prev) => [...prev, attempt]);
+      setAttempts((prev) => {
+        const updated = [...prev, attempt];
+        attemptsRef.current = updated;
+        return updated;
+      });
       setPhase('result');
     }
-  }, [isListening, transcript, phase, currentItem]);
+  }, [isListening, transcript, phase, currentItem, clearTimer]);
 
-  const handleNext = async () => {
-    if (index + 1 >= items.length) {
-      // Finish session
-      const completedAt = Date.now();
-      const correctItems = attempts.filter((a) => a.result === 'correct').length;
-      const totalItems = attempts.length;
-      const score = calculateScore(correctItems, totalItems);
-      const avgTime = attempts.length > 0
-        ? attempts.reduce((s, a) => s + a.timeMs, 0) / attempts.length
-        : 0;
+  useEffect(() => {
+    if (phase !== 'result') return;
+    nextTimeoutRef.current = window.setTimeout(() => {
+      if (index + 1 >= items.length) {
+        void completeSession(attemptsRef.current);
+      } else {
+        setIndex((i) => i + 1);
+        setPhase('ready');
+      }
+    }, RESULT_DISPLAY_MS);
+    return () => {
+      clearTimer(nextTimeoutRef);
+    };
+  }, [phase, index, items.length, completeSession, clearTimer]);
 
-      const session: ExerciseSession = {
-        id: generateId(),
-        profileId: profile.id,
-        setId: set.id,
-        type: set.type,
-        difficulty: set.difficulty,
-        attempts,
-        startedAt: sessionStartRef.current,
-        completedAt,
-        score,
-        totalItems,
-        correctItems,
-        averageTimeMs: avgTime,
-      };
-      await sessionStorage.save(session);
-      await gamificationService.processSession(session);
-      setPhase('done');
-    } else {
-      setIndex((i) => i + 1);
-      setLastResult(null);
-      setTranscript('');
-      setPhase('ready');
-    }
-  };
+  useEffect(() => () => {
+    clearTimer(readTimeoutRef);
+    clearTimer(nextTimeoutRef);
+    stop();
+  }, [clearTimer, stop]);
 
   if (phase === 'done') {
     const correctItems = attempts.filter((a) => a.result === 'correct').length;
@@ -138,6 +193,7 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
 
       {/* Error display */}
       {error && <p className="text-error text-center">{error}</p>}
+      {!isSupported && <p className="text-error text-center">🎤 Micròfon no disponible en aquest navegador</p>}
 
       {/* Result */}
       {lastResult && (
@@ -151,30 +207,11 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
 
       {/* Controls */}
       <div className={styles.controls}>
-        {phase === 'result' ? (
-          <Button size="lg" onClick={() => void handleNext()}>
-            {index + 1 >= items.length ? '✅ Finalitzar' : '➡ Següent'}
-          </Button>
-        ) : (
-          <div className={styles.micWrapper}>
-            <MicrophoneButton
-              isListening={isListening}
-              isSupported={isSupported}
-              onStart={handleStartListening}
-              onStop={handleStopListening}
-              disabled={false}
-            />
-          </div>
+        {phase === 'listening' && (
+          <p className="text-muted">⏱️ Temps restant: {(timeLeftMs / 1000).toFixed(1)}s</p>
         )}
-
-        {phase === 'ready' && !isListening && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => void handleNext()}
-          >
-            Saltar
-          </Button>
+        {phase === 'result' && (
+          <p className="text-muted">Preparant el següent element...</p>
         )}
       </div>
     </div>

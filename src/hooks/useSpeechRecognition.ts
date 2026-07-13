@@ -15,8 +15,8 @@ export function useSpeechRecognition(engine?: SpeechEngine) {
     setIsListening(true);
     const e = engineRef.current;
     e.onResult = (result) => {
+      setTranscript(result.transcript);
       if (result.isFinal) {
-        setTranscript(result.transcript);
         setIsListening(false);
       }
     };
