@@ -5,6 +5,23 @@
   z-index: 200;
 }
 
+.appLayout {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.appMain {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .appLayout {
+    flex-direction: row;
+  }
+}
+
 .skinArt {
   position: fixed;
   z-index: 0;
@@ -26,6 +43,16 @@
   bottom: 96px;
   width: min(310px, 56vw);
   transform: rotate(8deg);
+}
+
+@media (min-width: 768px) {
+  .skinArtLeft {
+    left: calc(220px - 36px);
+  }
+
+  .skinArtRight {
+    bottom: 40px;
+  }
 }
 
 @media (max-width: 480px) {
