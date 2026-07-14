@@ -86,8 +86,8 @@ export function StatsPage({ profile }: StatsPageProps) {
     : (hasRecentSessions ? Math.round(sessions.reduce((sum, session) => sum + session.score, 0) / sessions.length) : 0);
   const bestScore = hasRecentSessions ? Math.max(...sessions.map((session) => session.score)) : null;
   const totalTimeMs = stats?.totalTimeMs ?? sessions.reduce((sum, session) => sum + ((session.completedAt ?? 0) - session.startedAt), 0);
-  const totalMinutes = Math.max(1, Math.round(totalTimeMs / 60000));
-  const errorMap = { ...(stats?.errorFrequency ?? {}) };
+  const totalMinutes = totalTimeMs > 0 ? Math.max(1, Math.round(totalTimeMs / 60000)) : 0;
+  const errorMap = { ...stats?.errorFrequency };
   if (Object.keys(errorMap).length === 0) {
     for (const session of sessions) {
       for (const attempt of session.attempts) {
