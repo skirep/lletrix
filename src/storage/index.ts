@@ -3,4 +3,4 @@ export { profileStorage, loadProfilesFromSupabase, loadStatsFromSupabase, loadRa
 export type { RankingEntry } from './profileStorage';
 export { sessionStorage } from './sessionStorage';
 export { gamificationStorage, loadGamificationFromSupabase } from './gamificationStorage';
-export { settingsStorage } from './settingsStorage';
+export { settingsStorage, loadSettingsFromSupabase } from './settingsStorage';

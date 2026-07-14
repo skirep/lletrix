@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { profileStorage, loadProfilesFromSupabase, loadRankings, loadGamificationFromSupabase } from '../storage';
+import { profileStorage, loadProfilesFromSupabase, loadRankings, loadGamificationFromSupabase, loadSettingsFromSupabase } from '../storage';
 import type { Profile, ProfileStats } from '../models';
 import type { RankingEntry } from '../storage';
 import { generateId } from '../utils';
@@ -23,6 +23,7 @@ export function useProfiles(userId?: string) {
         for (const p of cloud) {
           await profileStorage.upsertFromCloud(p);
           void loadGamificationFromSupabase(p.id);
+          void loadSettingsFromSupabase(p.id);
         }
         const local = await profileStorage.getAll(userId);
         setProfiles(local.length > 0 ? local : cloud);
