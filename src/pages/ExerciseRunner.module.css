@@ -6,6 +6,11 @@
   padding-bottom: 32px;
 }
 
+.instruction {
+  font-size: 14px;
+  text-align: center;
+}
+
 .progress {
   display: flex;
   align-items: center;

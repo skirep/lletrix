@@ -64,6 +64,22 @@ export function SettingsPage({ profile, settings, onUpdateSettings: update, onUp
     <div className={`page ${styles.page}`}>
       <h1 className="page-title">Ajustos</h1>
 
+      <details className="info-box">
+        <summary>ℹ️ Com funciona aquesta pantalla?</summary>
+        <div className="info-box-content">
+          <p>Aquí pots personalitzar l'experiència de l'aplicació:</p>
+          <ul>
+            <li><strong>Perfil:</strong> canvia el teu nom, escola i població per aparèixer al rànquing.</li>
+            <li><strong>Mida de la lletra:</strong> ajusta la mida del text per llegir-lo millor.</li>
+            <li><strong>Colors / Skin:</strong> tria l'aspecte visual de l'aplicació.</li>
+            <li><strong>Tipus de lletra:</strong> la lletra per a dislèxia facilita distingir lletres similars com b/d.</li>
+            <li><strong>Velocitat de lectura:</strong> temps que tens per llegir cada element en veu alta.</li>
+            <li><strong>Mode dislèxia:</strong> activa espaiament especial per millorar la llegibilitat.</li>
+          </ul>
+          <p>Tots els canvis es guarden automàticament.</p>
+        </div>
+      </details>
+
       {/* Profile */}
       <section className={`card ${styles.section}`}>
         <h2 className={styles.sectionTitle}>Perfil</h2>

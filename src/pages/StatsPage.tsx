@@ -81,6 +81,18 @@ export function StatsPage({ profile }: StatsPageProps) {
     <div className={`page ${styles.page}`}>
       <h1 className="page-title">Estadístiques</h1>
 
+      <details className="info-box">
+        <summary>ℹ️ Com funciona aquesta pantalla?</summary>
+        <div className="info-box-content">
+          <p>Aquí pots seguir el teu progrés:</p>
+          <ul>
+            <li><strong>📊 Les meves:</strong> veu el total d'exercicis, la puntuació mitjana, el millor resultat, el temps total practicat i els errors més freqüents que has comès.</li>
+            <li><strong>🏆 Rànquing:</strong> compara el teu nivell i XP amb els d'altres jugadors de tot arreu.</li>
+          </ul>
+          <p>Com més exercicis facis, millor reflectiran les estadístiques el teu progrés real.</p>
+        </div>
+      </details>
+
       {/* Tabs */}
       <div className={styles.tabs}>
         <button

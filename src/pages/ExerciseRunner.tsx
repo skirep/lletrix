@@ -270,6 +270,9 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
         <button className={styles.closeBtn} onClick={onFinish} aria-label="Sortir">✕</button>
       </div>
 
+      {/* Instruction */}
+      <p className={`text-muted ${styles.instruction}`}>🎤 Llegeix en veu alta el text que apareix a la pantalla</p>
+
       {/* Text to read */}
       <ExerciseText text={currentItem.text} />
 
