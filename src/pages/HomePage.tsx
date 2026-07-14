@@ -63,6 +63,20 @@ export function HomePage({ profile, onNavigate, onSwitchProfile }: HomePageProps
       {streak && <StreakDisplay streak={streak} />}
 
       {/* Quick actions */}
+      <details className="info-box">
+        <summary>ℹ️ Com funciona aquesta pantalla?</summary>
+        <div className="info-box-content">
+          <p>Aquesta és la teva pantalla d'inici. Aquí pots veure:</p>
+          <ul>
+            <li><strong>Barra d'experiència (XP):</strong> mostra quant has progressat cap al nivell següent.</li>
+            <li><strong>Objectiu diari:</strong> quants exercicis has de fer avui per assolir la teva meta.</li>
+            <li><strong>Ratxa:</strong> quants dies seguits has practicat. No la trencis!</li>
+          </ul>
+          <p>Prem <strong>🚀 Practicar ara!</strong> per començar un exercici de lectura.</p>
+        </div>
+      </details>
+
+      {/* Quick actions */}
       <div className={styles.actions}>
         <Button
           className={styles.actionBtn}

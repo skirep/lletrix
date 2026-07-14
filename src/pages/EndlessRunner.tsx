@@ -264,6 +264,9 @@ export function EndlessRunner({ profile, itemPool, sessionType, sessionDifficult
         <button className={styles.closeBtn} onClick={onFinish} aria-label="Sortir">✕</button>
       </div>
 
+      {/* Instruction */}
+      <p className={`text-muted ${styles.instruction}`}>🎤 Llegeix en veu alta · erra un cop i el joc s'acaba</p>
+
       <ExerciseText text={currentItem.text} />
 
       {error && <p className="text-error text-center">{error}</p>}

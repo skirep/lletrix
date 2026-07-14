@@ -88,6 +88,20 @@ export function ExercisesPage({ profile }: ExercisesPageProps) {
     <div className={`page ${styles.page}`}>
       <h1 className="page-title">Exercicis</h1>
 
+      <details className="info-box">
+        <summary>ℹ️ Com funciona aquesta pantalla?</summary>
+        <div className="info-box-content">
+          <p>Aquí pots triar i llançar exercicis de lectura en veu alta:</p>
+          <ul>
+            <li><strong>Tipus:</strong> tria entre síl·labes, paraules, pseudoparaules o frases.</li>
+            <li><strong>Dificultat:</strong> fàcil, mitjà o difícil.</li>
+            <li><strong>Conjunt:</strong> selecciona un grup d'exercicis concret i prem <strong>▶ Comença!</strong></li>
+          </ul>
+          <p>El micròfon s'obrirà automàticament per escoltar la teva lectura i et dirà si has llegit bé.</p>
+          <p><strong>Mode sense fi:</strong> llegeix elements un darrere l'altre fins que cometis un error. Intenta fer la ratxa més llarga possible!</p>
+        </div>
+      </details>
+
       {/* Type selection */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Tipus</h2>
