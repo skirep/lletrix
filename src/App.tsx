@@ -52,9 +52,7 @@ function AppContent() {
   useEffect(() => {
     if (!user || profilesLoading || currentProfile || autoHandling || loadedUserId !== user.id) return;
 
-    if (profiles.length === 1) {
-      setCurrentProfile(profiles[0]);
-    } else if (profiles.length === 0 && databaseReadStatus === 'success') {
+    if (profiles.length === 0 && databaseReadStatus === 'success') {
       setAutoHandling(true);
       const rawName = user.email?.split('@')[0] ?? 'Jugador';
       const name = rawName.charAt(0).toUpperCase() + rawName.slice(1);
