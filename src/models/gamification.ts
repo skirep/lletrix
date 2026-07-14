@@ -25,6 +25,24 @@ export interface ProfileBadge {
   earnedAt: number;
 }
 
+export interface PokemonReward {
+  badgeId: BadgeId;
+  pokemonId: number;
+  fallbackName: string;
+}
+
+export interface PokemonDetails {
+  id: number;
+  name: string;
+  imageUrl: string | null;
+}
+
+export interface PokemonCollectionItem extends PokemonReward, PokemonDetails {
+  unlocked: boolean;
+  unlockedAt: number | null;
+  unlockCondition: string;
+}
+
 export interface DailyGoal {
   profileId: string;
   date: string;
@@ -119,5 +137,19 @@ export const BADGES: Record<BadgeId, Badge> = {
     condition: 'Arriba al nivell 10',
   },
 };
+
+export const POKEMON_REWARDS: PokemonReward[] = [
+  { badgeId: 'first_exercise', pokemonId: 1, fallbackName: 'Bulbasaur' },
+  { badgeId: 'streak_3', pokemonId: 4, fallbackName: 'Charmander' },
+  { badgeId: 'streak_7', pokemonId: 7, fallbackName: 'Squirtle' },
+  { badgeId: 'streak_30', pokemonId: 25, fallbackName: 'Pikachu' },
+  { badgeId: 'perfect_10', pokemonId: 133, fallbackName: 'Eevee' },
+  { badgeId: 'speed_reader', pokemonId: 135, fallbackName: 'Jolteon' },
+  { badgeId: 'syllable_master', pokemonId: 152, fallbackName: 'Chikorita' },
+  { badgeId: 'word_master', pokemonId: 137, fallbackName: 'Porygon' },
+  { badgeId: 'sentence_master', pokemonId: 143, fallbackName: 'Snorlax' },
+  { badgeId: 'level_5', pokemonId: 94, fallbackName: 'Gengar' },
+  { badgeId: 'level_10', pokemonId: 149, fallbackName: 'Dragonite' },
+];
 
 export const DAILY_GOAL_TARGET = 5;
