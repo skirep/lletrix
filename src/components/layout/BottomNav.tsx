@@ -21,18 +21,25 @@ interface BottomNavProps {
 
 export function BottomNav({ currentPage, onNavigate }: BottomNavProps) {
   return (
-    <nav className={styles.nav}>
-      {NAV_ITEMS.map((item) => (
-        <button
-          key={item.id}
-          className={`${styles.item} ${currentPage === item.id ? styles.active : ''}`}
-          onClick={() => onNavigate(item.id)}
-          aria-label={item.label}
-        >
-          <span className={styles.icon}>{item.icon}</span>
-          <span className={styles.label}>{item.label}</span>
-        </button>
-      ))}
+    <nav className={styles.nav} aria-label="Navegació principal">
+      <div className={styles.brand} aria-hidden="true">
+        <span className={styles.brandIcon}>🔤</span>
+        <span className={styles.brandName}>Lletrix</span>
+      </div>
+      <div className={styles.items}>
+        {NAV_ITEMS.map((item) => (
+          <button
+            key={item.id}
+            className={`${styles.item} ${currentPage === item.id ? styles.active : ''}`}
+            onClick={() => onNavigate(item.id)}
+            aria-label={item.label}
+            aria-current={currentPage === item.id ? 'page' : undefined}
+          >
+            <span className={styles.icon}>{item.icon}</span>
+            <span className={styles.label}>{item.label}</span>
+          </button>
+        ))}
+      </div>
     </nav>
   );
 }

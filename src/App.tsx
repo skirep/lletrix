@@ -134,10 +134,12 @@ function AppContent() {
     <>
       <AppSettings settings={settings} />
       {databaseIndicator}
-      <main style={{ flex: 1 }}>
-        {renderPage()}
-      </main>
-      <BottomNav currentPage={page} onNavigate={(p) => setPage(p as Page)} />
+      <div className={styles.appLayout}>
+        <BottomNav currentPage={page} onNavigate={(p) => setPage(p as Page)} />
+        <main className={styles.appMain}>
+          {renderPage()}
+        </main>
+      </div>
     </>
   );
 }
