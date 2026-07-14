@@ -53,10 +53,10 @@ export function calculateSimilarity(expected: string, recognized: string): numbe
   if (a === b) return 1;
   if (!a || !b) return 0;
 
-  // For short tokens (syllables, ≤ 3 chars), also accept the answer when the
+  // For short tokens (syllables, ≤ 4 chars), also accept the answer when the
   // expected syllable appears as a whole word inside the recognized transcript.
   // Speech recognizers often embed bare syllables in longer phrases (e.g. "la pa").
-  if (a.length <= 3) {
+  if (a.length <= 4) {
     const recognizedWords = b.split(/\s+/);
     if (recognizedWords.includes(a)) return 1;
   }

@@ -24,7 +24,7 @@ const ERROR_DISPLAY_MS = 1500;
 
 export function EndlessRunner({ profile, itemPool, sessionType, sessionDifficulty, onFinish }: EndlessRunnerProps) {
   const { settings } = useSettings(profile.id);
-  const { transcript, isListening, error, isSupported, start, stop, setTranscript } = useSpeechRecognition();
+  const { transcript, alternatives, isListening, error, isSupported, start, stop, setTranscript } = useSpeechRecognition();
 
   const shuffledPoolRef = useRef(shuffleItems(itemPool));
   const poolIndexRef = useRef(0);
@@ -43,6 +43,7 @@ export function EndlessRunner({ profile, itemPool, sessionType, sessionDifficult
   const [timeLeftMs, setTimeLeftMs] = useState(0);
 
   const transcriptRef = useRef('');
+  const alternativesRef = useRef<Array<{ transcript: string; confidence: number }>>([]);
   const startTimeRef = useRef(0);
   const sessionStartRef = useRef(Date.now());
   const itemDeadlineRef = useRef(0);
@@ -74,20 +75,32 @@ export function EndlessRunner({ profile, itemPool, sessionType, sessionDifficult
     if (phaseRef.current !== 'listening') return;
     clearTimer(readTimeoutRef);
     const timeMs = Date.now() - startTimeRef.current;
-    const similarity = calculateSimilarity(currentItemRef.current.text, recognizedText);
+
+    // Try all speech alternatives and pick the one that best matches the expected text.
+    let bestText = recognizedText;
+    let bestSimilarity = calculateSimilarity(currentItemRef.current.text, recognizedText);
+    for (const alt of alternativesRef.current) {
+      const sim = calculateSimilarity(currentItemRef.current.text, alt.transcript);
+      if (sim > bestSimilarity) {
+        bestSimilarity = sim;
+        bestText = alt.transcript;
+      }
+    }
+
+    const similarity = bestSimilarity;
     const result = classifyResult(similarity);
     const attempt: ExerciseAttempt = {
       itemId: currentItemRef.current.id,
       expected: currentItemRef.current.text,
-      recognized: recognizedText,
+      recognized: bestText,
       result,
       similarity,
-      errorTypes: detectErrors(currentItemRef.current.text, recognizedText),
+      errorTypes: detectErrors(currentItemRef.current.text, bestText),
       timeMs,
       timestamp: Date.now(),
     };
     attemptsRef.current = [...attemptsRef.current, attempt];
-    setLastResult({ result, recognized: recognizedText, similarity });
+    setLastResult({ result, recognized: bestText, similarity });
     if (result === 'correct') {
       streakRef.current++;
       setStreak(streakRef.current);
@@ -140,6 +153,7 @@ export function EndlessRunner({ profile, itemPool, sessionType, sessionDifficult
 
   useEffect(() => { phaseRef.current = phase; }, [phase]);
   useEffect(() => { transcriptRef.current = transcript; }, [transcript]);
+  useEffect(() => { alternativesRef.current = alternatives; }, [alternatives]);
 
   // ready → listening
   useEffect(() => {

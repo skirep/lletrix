@@ -65,9 +65,10 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
   const completingRef = useRef(false);
   const phaseRef = useRef<'ready' | 'listening' | 'result' | 'done'>('ready');
   const transcriptRef = useRef('');
+  const alternativesRef = useRef<Array<{ transcript: string; confidence: number }>>([]);
 
   const { settings } = useSettings(profile.id);
-  const { transcript, isListening, error, isSupported, start, stop, setTranscript } = useSpeechRecognition();
+  const { transcript, alternatives, isListening, error, isSupported, start, stop, setTranscript } = useSpeechRecognition();
 
   const currentItem = items[index];
 
@@ -82,14 +83,28 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
     if (phaseRef.current !== 'listening' || !currentItem) return;
     clearTimer(readTimeoutRef);
     const timeMs = Date.now() - startTimeRef.current;
-    const similarity = calculateSimilarity(currentItem.text, recognizedText);
+
+    // Try all speech alternatives and pick the one that best matches the expected text.
+    // This significantly improves recognition of short syllables that aren't real words,
+    // since the speech engine's top result often misidentifies them.
+    let bestText = recognizedText;
+    let bestSimilarity = calculateSimilarity(currentItem.text, recognizedText);
+    for (const alt of alternativesRef.current) {
+      const sim = calculateSimilarity(currentItem.text, alt.transcript);
+      if (sim > bestSimilarity) {
+        bestSimilarity = sim;
+        bestText = alt.transcript;
+      }
+    }
+
+    const similarity = bestSimilarity;
     const result = classifyResult(similarity);
-    const errorTypes = detectErrors(currentItem.text, recognizedText);
-    setLastResult({ result, recognized: recognizedText, similarity });
+    const errorTypes = detectErrors(currentItem.text, bestText);
+    setLastResult({ result, recognized: bestText, similarity });
     const attempt: ExerciseAttempt = {
       itemId: currentItem.id,
       expected: currentItem.text,
-      recognized: recognizedText,
+      recognized: bestText,
       result,
       similarity,
       errorTypes,
@@ -156,6 +171,10 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
   useEffect(() => {
     transcriptRef.current = transcript;
   }, [transcript]);
+
+  useEffect(() => {
+    alternativesRef.current = alternatives;
+  }, [alternatives]);
 
   useEffect(() => {
     if (items.length === 0) {
