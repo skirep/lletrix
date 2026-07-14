@@ -1,21 +1,24 @@
 import { useState, useCallback, useRef } from 'react';
 import { WebSpeechEngine } from '../speech';
-import type { SpeechEngine } from '../speech';
+import type { SpeechEngine, SpeechRecognitionAlternativeResult } from '../speech';
 
 export function useSpeechRecognition(engine?: SpeechEngine) {
   const engineRef = useRef<SpeechEngine>(engine ?? new WebSpeechEngine());
   const [transcript, setTranscript] = useState('');
+  const [alternatives, setAlternatives] = useState<SpeechRecognitionAlternativeResult[]>([]);
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSupported] = useState(() => engineRef.current.isSupported());
 
   const start = useCallback(() => {
     setTranscript('');
+    setAlternatives([]);
     setError(null);
     setIsListening(true);
     const e = engineRef.current;
     e.onResult = (result) => {
       setTranscript(result.transcript);
+      setAlternatives(result.alternatives);
       if (result.isFinal) {
         setIsListening(false);
       }
@@ -35,5 +38,5 @@ export function useSpeechRecognition(engine?: SpeechEngine) {
     setIsListening(false);
   }, []);
 
-  return { transcript, isListening, error, isSupported, start, stop, setTranscript };
+  return { transcript, alternatives, isListening, error, isSupported, start, stop, setTranscript };
 }

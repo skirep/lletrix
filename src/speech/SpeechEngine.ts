@@ -1,7 +1,13 @@
+export interface SpeechRecognitionAlternativeResult {
+  transcript: string;
+  confidence: number;
+}
+
 export interface SpeechRecognitionResult {
   transcript: string;
   confidence: number;
   isFinal: boolean;
+  alternatives: SpeechRecognitionAlternativeResult[];
 }
 
 export interface SpeechEngineOptions {

@@ -97,15 +97,22 @@ export class WebSpeechEngine implements SpeechEngine {
     this.recognition.lang = options.language ?? 'ca-ES';
     this.recognition.continuous = options.continuous ?? false;
     this.recognition.interimResults = options.interimResults ?? true;
-    this.recognition.maxAlternatives = 3;
+    this.recognition.maxAlternatives = 5;
 
     this.recognition.onresult = (event: SpeechRecognitionEvent) => {
       const result = event.results[event.results.length - 1];
-      const alternative = result[0];
+      const alternatives = [];
+      for (let i = 0; i < result.length; i++) {
+        alternatives.push({
+          transcript: result[i].transcript.trim().toLowerCase(),
+          confidence: result[i].confidence,
+        });
+      }
       this.onResult?.({
-        transcript: alternative.transcript.trim().toLowerCase(),
-        confidence: alternative.confidence,
+        transcript: alternatives[0]?.transcript ?? '',
+        confidence: alternatives[0]?.confidence ?? 0,
         isFinal: result.isFinal,
+        alternatives,
       });
     };
 
