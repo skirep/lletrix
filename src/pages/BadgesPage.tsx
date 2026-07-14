@@ -1,6 +1,6 @@
 import styles from './BadgesPage.module.css';
-import { BadgeDisplay } from '../components/gamification';
-import { useGamification } from '../hooks';
+import { BadgeDisplay, PokemonCollection } from '../components/gamification';
+import { useGamification, usePokemonCollection } from '../hooks';
 import type { Profile } from '../models';
 
 interface BadgesPageProps {
@@ -9,10 +9,12 @@ interface BadgesPageProps {
 
 export function BadgesPage({ profile }: BadgesPageProps) {
   const { badges, streak } = useGamification(profile.id);
+  const { collection, loading } = usePokemonCollection(badges);
+  const unlockedPokemon = collection.filter((pokemon) => pokemon.unlocked).length;
 
   return (
     <div className={`page ${styles.page}`}>
-      <h1 className="page-title">Medalles</h1>
+      <h1 className="page-title">Medalles i Pokémon</h1>
 
       {streak && (
         <div className={`card ${styles.streakCard}`}>
@@ -37,6 +39,13 @@ export function BadgesPage({ profile }: BadgesPageProps) {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Totes les medalles</h2>
         <BadgeDisplay earned={badges} showAll />
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>
+          Col·lecció Pokémon ({unlockedPokemon}/{collection.length || 0})
+        </h2>
+        <PokemonCollection collection={collection} loading={loading} />
       </section>
     </div>
   );
