@@ -60,6 +60,8 @@ export function ExercisesPage({ profile }: ExercisesPageProps) {
         profile={profile}
         itemPool={endlessPool}
         label={endlessLabel}
+        sessionType={selectedType ?? endlessPool[0].type}
+        sessionDifficulty={selectedDifficulty ?? endlessPool[0].difficulty}
         onFinish={() => setEndlessRunning(false)}
       />
     );

@@ -36,6 +36,7 @@
   width: 72px;
   height: 72px;
   object-fit: contain;
+  transition: transform 0.22s ease;
 }
 
 .locked .art {
@@ -49,6 +50,13 @@
   width: 72px;
   height: 72px;
   font-size: 40px;
+  transition: transform 0.22s ease;
+}
+
+.unlocked:hover .art,
+.unlocked:hover .placeholder {
+  transform: scale(3);
+  z-index: 2;
 }
 
 .name {

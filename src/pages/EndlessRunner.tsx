@@ -3,21 +3,26 @@ import styles from './EndlessRunner.module.css';
 import { ExerciseText, ResultFeedback } from '../components/exercise';
 import { Button } from '../components/common';
 import { useSettings, useSpeechRecognition } from '../hooks';
-import { calculateSimilarity, classifyResult } from '../scoring';
+import { calculateSimilarity, classifyResult, detectErrors, calculateScore } from '../scoring';
 import { shuffleItems } from '../exercises';
-import type { ExerciseItem, Profile, ReadingResult } from '../models';
+import { sessionStorage } from '../storage';
+import { gamificationService } from '../gamification';
+import { generateId } from '../utils';
+import type { ExerciseItem, Profile, ReadingResult, ExerciseAttempt, ExerciseSession, ExerciseType, Difficulty } from '../models';
 
 interface EndlessRunnerProps {
   profile: Profile;
   itemPool: ExerciseItem[];
   label: string;
+  sessionType: ExerciseType;
+  sessionDifficulty: Difficulty;
   onFinish: () => void;
 }
 
 const CORRECT_DISPLAY_MS = 600;
 const ERROR_DISPLAY_MS = 1500;
 
-export function EndlessRunner({ profile, itemPool, onFinish }: EndlessRunnerProps) {
+export function EndlessRunner({ profile, itemPool, sessionType, sessionDifficulty, onFinish }: EndlessRunnerProps) {
   const { settings } = useSettings(profile.id);
   const { transcript, isListening, error, isSupported, start, stop, setTranscript } = useSpeechRecognition();
 
@@ -39,9 +44,12 @@ export function EndlessRunner({ profile, itemPool, onFinish }: EndlessRunnerProp
 
   const transcriptRef = useRef('');
   const startTimeRef = useRef(0);
+  const sessionStartRef = useRef(Date.now());
   const itemDeadlineRef = useRef(0);
   const readTimeoutRef = useRef<number | null>(null);
   const nextTimeoutRef = useRef<number | null>(null);
+  const attemptsRef = useRef<ExerciseAttempt[]>([]);
+  const completingRef = useRef(false);
 
   const clearTimer = useCallback((timer: { current: number | null }) => {
     if (timer.current !== null) {
@@ -65,8 +73,20 @@ export function EndlessRunner({ profile, itemPool, onFinish }: EndlessRunnerProp
   const evaluateCurrentAttempt = useCallback((recognizedText: string) => {
     if (phaseRef.current !== 'listening') return;
     clearTimer(readTimeoutRef);
+    const timeMs = Date.now() - startTimeRef.current;
     const similarity = calculateSimilarity(currentItemRef.current.text, recognizedText);
     const result = classifyResult(similarity);
+    const attempt: ExerciseAttempt = {
+      itemId: currentItemRef.current.id,
+      expected: currentItemRef.current.text,
+      recognized: recognizedText,
+      result,
+      similarity,
+      errorTypes: detectErrors(currentItemRef.current.text, recognizedText),
+      timeMs,
+      timestamp: Date.now(),
+    };
+    attemptsRef.current = [...attemptsRef.current, attempt];
     setLastResult({ result, recognized: recognizedText, similarity });
     if (result === 'correct') {
       streakRef.current++;
@@ -74,6 +94,49 @@ export function EndlessRunner({ profile, itemPool, onFinish }: EndlessRunnerProp
     }
     setPhase('result');
   }, [clearTimer]);
+
+  const completeSession = useCallback(async (finalAttempts: ExerciseAttempt[]) => {
+    if (completingRef.current) return;
+    completingRef.current = true;
+
+    if (finalAttempts.length === 0) {
+      return;
+    }
+
+    const completedAt = Date.now();
+    const correctItems = finalAttempts.filter((attempt) => attempt.result === 'correct').length;
+    const totalItems = finalAttempts.length;
+    const score = calculateScore(correctItems, totalItems);
+    const averageTimeMs = Math.round(
+      finalAttempts.reduce((acc, attempt) => acc + attempt.timeMs, 0) / totalItems,
+    );
+    const session: ExerciseSession = {
+      id: generateId(),
+      profileId: profile.id,
+      setId: `endless-${sessionType}-${sessionDifficulty}`,
+      type: sessionType,
+      difficulty: sessionDifficulty,
+      attempts: finalAttempts,
+      startedAt: sessionStartRef.current,
+      completedAt,
+      score,
+      totalItems,
+      correctItems,
+      averageTimeMs,
+    };
+
+    try {
+      await sessionStorage.save(session);
+    } catch (err) {
+      console.error('Error saving endless session:', err);
+    }
+
+    try {
+      await gamificationService.processSession(session);
+    } catch (err) {
+      console.error('Error processing endless gamification:', err);
+    }
+  }, [profile.id, sessionDifficulty, sessionType]);
 
   useEffect(() => { phaseRef.current = phase; }, [phase]);
   useEffect(() => { transcriptRef.current = transcript; }, [transcript]);
@@ -94,8 +157,6 @@ export function EndlessRunner({ profile, itemPool, onFinish }: EndlessRunnerProp
       stop();
       setTimeLeftMs(0);
       if (!transcriptRef.current.trim()) {
-        // Time's up with nothing said → game over
-        phaseRef.current = 'done';
         setPhase('done');
       } else {
         evaluateCurrentAttempt(transcriptRef.current);
@@ -135,6 +196,12 @@ export function EndlessRunner({ profile, itemPool, onFinish }: EndlessRunnerProp
     return () => { clearTimer(nextTimeoutRef); };
   }, [phase, lastResult, getNextItem, clearTimer]);
 
+  useEffect(() => {
+    if (phase === 'done') {
+      void completeSession(attemptsRef.current);
+    }
+  }, [phase, completeSession]);
+
   // Cleanup on unmount
   useEffect(() => () => {
     clearTimer(readTimeoutRef);
@@ -148,6 +215,9 @@ export function EndlessRunner({ profile, itemPool, onFinish }: EndlessRunnerProp
     const item = shuffledPoolRef.current[0];
     currentItemRef.current = item;
     setCurrentItem(item);
+    attemptsRef.current = [];
+    sessionStartRef.current = Date.now();
+    completingRef.current = false;
     streakRef.current = 0;
     setStreak(0);
     setLastResult(null);

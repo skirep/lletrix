@@ -14,7 +14,10 @@ export function usePokemonCollection(profileId: string | null) {
 
     const load = async () => {
       const stats = profileId ? await profileStorage.getStats(profileId) : null;
-      const totalExercises = stats?.totalExercises ?? 0;
+      const totalProgress = Math.max(
+        stats?.totalCorrect ?? 0,
+        stats?.totalExercises ?? 0,
+      );
 
       const nextCollection = await Promise.all(
         POKEMON_REWARDS.map(async (reward) => {
@@ -22,8 +25,8 @@ export function usePokemonCollection(profileId: string | null) {
           return {
             ...reward,
             ...pokemon,
-            unlocked: totalExercises >= reward.requiredExercises,
-            unlockCondition: `${reward.requiredExercises} exercici${reward.requiredExercises === 1 ? '' : 's'}`,
+            unlocked: totalProgress >= reward.requiredExercises,
+            unlockCondition: `${reward.requiredExercises} avenç${reward.requiredExercises === 1 ? '' : 'os'}`,
           } satisfies PokemonCollectionItem;
         }),
       );

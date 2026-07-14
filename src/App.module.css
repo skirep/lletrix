@@ -17,14 +17,14 @@
 .skinArtLeft {
   top: max(72px, env(safe-area-inset-top) + 40px);
   left: -36px;
-  width: min(180px, 38vw);
+  width: min(250px, 50vw);
   transform: rotate(-8deg);
 }
 
 .skinArtRight {
   right: -40px;
   bottom: 96px;
-  width: min(220px, 44vw);
+  width: min(310px, 56vw);
   transform: rotate(8deg);
 }
 
@@ -35,11 +35,11 @@
 
   .skinArtLeft {
     left: -48px;
-    width: 148px;
+    width: 186px;
   }
 
   .skinArtRight {
     right: -52px;
-    width: 176px;
+    width: 224px;
   }
 }
