@@ -8,7 +8,7 @@ import { StatsPage } from './pages/StatsPage';
 import { BadgesPage } from './pages/BadgesPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { BottomNav } from './components/layout';
-import { DatabaseReadIndicator, LoadingSpinner } from './components/common';
+import { DatabaseReadIndicator, LoadingSpinner, WalkingPikachu } from './components/common';
 import { useSettings, useProfiles } from './hooks';
 import type { Profile, AppSettings as AppSettingsData } from './models';
 import styles from './App.module.css';
@@ -45,6 +45,7 @@ function AppSettings({ settings }: { settings: AppSettingsData }) {
       <>
         <img className={`${styles.skinArt} ${styles.skinArtLeft}`} src={POKEMON_SKIN_ART.pikachu} alt="" aria-hidden="true" />
         <img className={`${styles.skinArt} ${styles.skinArtRight}`} src={POKEMON_SKIN_ART.charizard} alt="" aria-hidden="true" />
+        <WalkingPikachu />
       </>
     );
   }

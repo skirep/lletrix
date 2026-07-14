@@ -1,0 +1,17 @@
+.walkingPikachu {
+  position: fixed;
+  bottom: 76px;
+  left: 0;
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+  z-index: 50;
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (min-width: 768px) {
+  .walkingPikachu {
+    bottom: 16px;
+  }
+}
