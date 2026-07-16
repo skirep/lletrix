@@ -80,6 +80,7 @@ Pots desbloquejar **200 Pokémon** de la primera generació:
 - **Autenticació opcional**: Supabase (email + contrasenya) per sincronitzar perfils
 - **Reconeixement de veu**: Web Speech API del navegador
 - **Linter**: oxlint
+- **Documentació tècnica (arquitectura i stack)**: [DOCUMENTACIO_TECNICA.md](./DOCUMENTACIO_TECNICA.md)
 
 ### Comandes de desenvolupament
 
