@@ -128,10 +128,17 @@
 
 .fighterLeft.fighterAttacking {
   animation: chargeFromLeft 0.82s cubic-bezier(0.2, 0.75, 0.25, 1) both;
+  z-index: 6;
 }
 
 .fighterRight.fighterAttacking {
   animation: chargeFromRight 0.82s cubic-bezier(0.2, 0.75, 0.25, 1) both;
+  z-index: 6;
+}
+
+.fighterAttacking .fighterArt,
+.fighterAttacking .fighterPlaceholder {
+  animation: attackerGrow 0.82s cubic-bezier(0.2, 0.75, 0.25, 1) both;
 }
 
 .fighterHit .fighterArt,
@@ -495,27 +502,40 @@
 
 @keyframes chargeFromLeft {
   0%, 100% {
-    transform: translateX(0) scale(1);
+    transform: translateX(0);
   }
   46% {
-    transform: translateX(39%) scale(1.04) rotate(2deg);
+    transform: translateX(52%) rotate(2deg);
     box-shadow: 12px 14px 28px rgba(29, 78, 216, 0.22);
   }
   62% {
-    transform: translateX(34%) scale(1.02);
+    transform: translateX(44%);
   }
 }
 
 @keyframes chargeFromRight {
   0%, 100% {
-    transform: translateX(0) scale(1);
+    transform: translateX(0);
   }
   46% {
-    transform: translateX(-39%) scale(1.04) rotate(-2deg);
+    transform: translateX(-52%) rotate(-2deg);
     box-shadow: -12px 14px 28px rgba(29, 78, 216, 0.22);
   }
   62% {
-    transform: translateX(-34%) scale(1.02);
+    transform: translateX(-44%);
+  }
+}
+
+@keyframes attackerGrow {
+  0%, 100% {
+    transform: scale(1);
+  }
+  46% {
+    transform: scale(1.8);
+    filter: saturate(1.2);
+  }
+  62% {
+    transform: scale(1.55);
   }
 }
 
