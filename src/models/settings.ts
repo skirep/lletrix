@@ -4,6 +4,7 @@ export type ColorScheme = 'default' | 'high-contrast' | 'warm' | 'cool';
 export type SkinId = 'original' | 'pokemon' | 'pikachu-ash' | 'team-rocket';
 
 export interface ExerciseSpeeds {
+  sounds: number;
   syllables: number;
   words: number;
   pseudowords: number;
@@ -27,6 +28,7 @@ export interface AppSettings {
 export const DEFAULT_SETTINGS: Omit<AppSettings, 'profileId'> = {
   speed: 2,
   exerciseSpeeds: {
+    sounds: 2,
     syllables: 2,
     words: 2,
     pseudowords: 2,

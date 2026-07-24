@@ -1,3 +1,4 @@
+import soundsSets from './sounds.json';
 import syllablesSets from './syllables.json';
 import wordsSets from './words.json';
 import pseudowordsSets from './pseudowords.json';
@@ -5,6 +6,7 @@ import sentencesSets from './sentences.json';
 import type { ExerciseSet, ExerciseType, Difficulty } from '../models';
 
 const allSets: ExerciseSet[] = [
+  ...(soundsSets as ExerciseSet[]),
   ...(syllablesSets as ExerciseSet[]),
   ...(wordsSets as ExerciseSet[]),
   ...(pseudowordsSets as ExerciseSet[]),

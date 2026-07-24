@@ -1,0 +1,59 @@
+[
+  {
+    "id": "sounds-easy-1",
+    "title": "Sons de lletres - inici",
+    "description": "Practica el so bàsic de lletres individuals.",
+    "type": "sounds",
+    "difficulty": "easy",
+    "items": [
+      { "id": "sound-a", "text": "a", "type": "sounds", "difficulty": "easy" },
+      { "id": "sound-e", "text": "e", "type": "sounds", "difficulty": "easy" },
+      { "id": "sound-i", "text": "i", "type": "sounds", "difficulty": "easy" },
+      { "id": "sound-o", "text": "o", "type": "sounds", "difficulty": "easy" },
+      { "id": "sound-u", "text": "u", "type": "sounds", "difficulty": "easy" },
+      { "id": "sound-m", "text": "m", "type": "sounds", "difficulty": "easy" },
+      { "id": "sound-p", "text": "p", "type": "sounds", "difficulty": "easy" },
+      { "id": "sound-l", "text": "l", "type": "sounds", "difficulty": "easy" },
+      { "id": "sound-s", "text": "s", "type": "sounds", "difficulty": "easy" },
+      { "id": "sound-t", "text": "t", "type": "sounds", "difficulty": "easy" }
+    ]
+  },
+  {
+    "id": "sounds-medium-1",
+    "title": "Sons de lletres - reforç",
+    "description": "Distingir sons semblants amb més precisió.",
+    "type": "sounds",
+    "difficulty": "medium",
+    "items": [
+      { "id": "sound-b", "text": "b", "type": "sounds", "difficulty": "medium" },
+      { "id": "sound-d", "text": "d", "type": "sounds", "difficulty": "medium" },
+      { "id": "sound-f", "text": "f", "type": "sounds", "difficulty": "medium" },
+      { "id": "sound-g", "text": "g", "type": "sounds", "difficulty": "medium" },
+      { "id": "sound-k", "text": "k", "type": "sounds", "difficulty": "medium" },
+      { "id": "sound-n", "text": "n", "type": "sounds", "difficulty": "medium" },
+      { "id": "sound-r", "text": "r", "type": "sounds", "difficulty": "medium" },
+      { "id": "sound-v", "text": "v", "type": "sounds", "difficulty": "medium" },
+      { "id": "sound-z", "text": "z", "type": "sounds", "difficulty": "medium" },
+      { "id": "sound-x", "text": "x", "type": "sounds", "difficulty": "medium" }
+    ]
+  },
+  {
+    "id": "sounds-hard-1",
+    "title": "Sons de lletres - repte",
+    "description": "Treballa sons menys freqüents o fàcils de confondre.",
+    "type": "sounds",
+    "difficulty": "hard",
+    "items": [
+      { "id": "sound-c", "text": "c", "type": "sounds", "difficulty": "hard" },
+      { "id": "sound-q", "text": "q", "type": "sounds", "difficulty": "hard" },
+      { "id": "sound-h", "text": "h", "type": "sounds", "difficulty": "hard" },
+      { "id": "sound-j", "text": "j", "type": "sounds", "difficulty": "hard" },
+      { "id": "sound-y", "text": "y", "type": "sounds", "difficulty": "hard" },
+      { "id": "sound-w", "text": "w", "type": "sounds", "difficulty": "hard" },
+      { "id": "sound-ny", "text": "n", "type": "sounds", "difficulty": "hard" },
+      { "id": "sound-ll", "text": "l", "type": "sounds", "difficulty": "hard" },
+      { "id": "sound-rr", "text": "r", "type": "sounds", "difficulty": "hard" },
+      { "id": "sound-cs", "text": "s", "type": "sounds", "difficulty": "hard" }
+    ]
+  }
+]

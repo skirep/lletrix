@@ -12,7 +12,7 @@ import type { ExerciseType, Difficulty, ExerciseSet, ExerciseItem, Profile } fro
  * ExercisesPage – exercise catalogue and launcher.
  *
  * The player follows three optional filter steps before starting:
- *  1. **Type**       – syllables / words / pseudowords / sentences.
+ *  1. **Type**       – sounds / syllables / words / pseudowords / sentences.
  *  2. **Difficulty** – easy / medium / hard.
  *  3. **Set**        – one of the available exercise sets matching the filters.
  *
@@ -26,6 +26,7 @@ import type { ExerciseType, Difficulty, ExerciseSet, ExerciseItem, Profile } fro
  */
 
 const TYPE_LABELS: Record<ExerciseType, string> = {
+  sounds: '🔊 Sons',
   syllables: '🔤 Síl·labes',
   words: '📝 Paraules',
   pseudowords: '🔮 Pseudoparaules',
@@ -55,7 +56,7 @@ export function ExercisesPage({ profile, initialSetId = null, onInitialSetConsum
   const [endlessPool, setEndlessPool] = useState<ExerciseItem[]>([]);
   const [endlessLabel, setEndlessLabel] = useState('');
 
-  const allTypes: ExerciseType[] = ['syllables', 'words', 'pseudowords', 'sentences'];
+  const allTypes: ExerciseType[] = ['sounds', 'syllables', 'words', 'pseudowords', 'sentences'];
   const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
 
   const availableSets = selectedType && selectedDifficulty
@@ -115,7 +116,7 @@ export function ExercisesPage({ profile, initialSetId = null, onInitialSetConsum
         <div className="info-box-content">
           <p>Aquí pots triar i llançar exercicis de lectura en veu alta:</p>
           <ul>
-            <li><strong>Tipus:</strong> tria entre síl·labes, paraules, pseudoparaules o frases.</li>
+            <li><strong>Tipus:</strong> tria entre sons, síl·labes, paraules, pseudoparaules o frases.</li>
             <li><strong>Dificultat:</strong> fàcil, mitjà o difícil.</li>
             <li><strong>Conjunt:</strong> selecciona un grup d'exercicis concret i prem <strong>▶ Comença!</strong></li>
           </ul>

@@ -1,4 +1,4 @@
-export type ExerciseType = 'syllables' | 'words' | 'pseudowords' | 'sentences';
+export type ExerciseType = 'sounds' | 'syllables' | 'words' | 'pseudowords' | 'sentences';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type ReadingResult = 'correct' | 'almost' | 'incorrect';
 

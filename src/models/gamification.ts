@@ -43,7 +43,7 @@ export interface ProfileBadge {
   earnedAt: number;
 }
 
-export type PokemonExerciseType = Exclude<ExerciseType, 'pseudowords'>;
+export type PokemonExerciseType = Exclude<ExerciseType, 'pseudowords' | 'sounds'>;
 
 export interface PokemonPath {
   pathId: string;

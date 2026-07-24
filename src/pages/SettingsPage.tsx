@@ -38,6 +38,7 @@ const READING_SPEEDS: { id: number; label: string }[] = [
 ];
 
 const EXERCISE_SPEED_TYPES: { id: ExerciseType; label: string }[] = [
+  { id: 'sounds', label: 'Sons' },
   { id: 'syllables', label: 'Síl·labes' },
   { id: 'words', label: 'Paraules' },
   { id: 'pseudowords', label: 'Pseudoparaules' },

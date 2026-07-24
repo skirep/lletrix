@@ -20,6 +20,7 @@ function normalizeExerciseSpeeds(
 ): AppSettings['exerciseSpeeds'] {
   const fallback = normalizeSpeed(fallbackSpeed);
   return {
+    sounds: normalizeSpeed(speeds?.sounds ?? fallback),
     syllables: normalizeSpeed(speeds?.syllables ?? fallback),
     words: normalizeSpeed(speeds?.words ?? fallback),
     pseudowords: normalizeSpeed(speeds?.pseudowords ?? fallback),
@@ -124,7 +125,7 @@ export const settingsStorage = {
     const updated: AppSettings = {
       ...current,
       ...partial,
-      speed: partialSpeed ?? normalizedExerciseSpeeds.syllables,
+      speed: partialSpeed ?? normalizedExerciseSpeeds.sounds,
       exerciseSpeeds: normalizedExerciseSpeeds,
       skin: normalizeSkin((partial.skin ?? current.skin) as AppSettings['skin']),
     };
