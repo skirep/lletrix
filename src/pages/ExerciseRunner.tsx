@@ -112,8 +112,8 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
     setPhase('done');
   }, [profile.id, set.id, set.type, set.difficulty]);
 
-  const evaluateCurrentAttempt = useCallback((recognizedText: string) => {
-    if (phaseRef.current !== 'listening' || timedOutRef.current || !currentItem) return;
+  const evaluateCurrentAttempt = useCallback((recognizedText: string, allowWhenTimedOut = false) => {
+    if (phaseRef.current !== 'listening' || (!allowWhenTimedOut && timedOutRef.current) || !currentItem) return;
     clearTimer(readTimeoutRef);
     const timeMs = Date.now() - startTimeRef.current;
 
@@ -163,10 +163,18 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
 
   const handleReadTimeout = useCallback(() => {
     if (phaseRef.current !== 'listening' || timedOutRef.current || !currentItem) return;
-    timedOutRef.current = true;
     clearTimer(readTimeoutRef);
     stop();
     setTimeLeftMs(0);
+
+    const recognizedAtTimeout = transcriptRef.current.trim();
+    if (recognizedAtTimeout) {
+      timedOutRef.current = true;
+      evaluateCurrentAttempt(recognizedAtTimeout, true);
+      return;
+    }
+
+    timedOutRef.current = true;
 
     const attempt: ExerciseAttempt = {
       itemId: currentItem.id,
@@ -196,7 +204,7 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
     }
 
     void completeSession(updatedAttempts);
-  }, [clearTimer, stop, currentItem, isHardSyllableMode, index, items.length, completeSession]);
+  }, [clearTimer, stop, currentItem, isHardSyllableMode, index, items.length, completeSession, evaluateCurrentAttempt]);
 
   useEffect(() => {
     attemptsRef.current = attempts;

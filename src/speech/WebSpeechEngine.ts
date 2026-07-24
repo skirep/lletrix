@@ -96,7 +96,7 @@ export class WebSpeechEngine implements SpeechEngine {
     this.recognition = new SpeechRecognitionCtor();
     this.recognition.lang = options.language ?? 'ca-ES';
     this.recognition.continuous = options.continuous ?? false;
-    this.recognition.interimResults = options.interimResults ?? false;
+    this.recognition.interimResults = options.interimResults ?? true;
     this.recognition.maxAlternatives = 5;
 
     this.recognition.onresult = (event: SpeechRecognitionEvent) => {
