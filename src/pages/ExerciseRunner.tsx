@@ -37,6 +37,7 @@ interface ExerciseRunnerProps {
 }
 
 const RESULT_DISPLAY_MS = 1200;
+const SYLLABLE_RESULT_DISPLAY_MS = 350;
 const HARD_SYLLABLE_BASE_ITEMS = 50;
 
 export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) {
@@ -197,15 +198,11 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
       timedOutRef.current = true;
       stop();
       setTimeLeftMs(0);
-      if (!transcriptRef.current.trim()) {
-        if (index + 1 >= items.length) {
-          void completeSession(attemptsRef.current);
-        } else {
-          setIndex((i) => i + 1);
-          setPhase('ready');
-        }
+      if (index + 1 >= items.length) {
+        void completeSession(attemptsRef.current);
       } else {
-        evaluateCurrentAttempt(transcriptRef.current);
+        setIndex((i) => i + 1);
+        setPhase('ready');
       }
     }, durationMs);
 
@@ -231,6 +228,7 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
 
   useEffect(() => {
     if (phase !== 'result') return;
+    const resultDisplayMs = set.type === 'syllables' ? SYLLABLE_RESULT_DISPLAY_MS : RESULT_DISPLAY_MS;
     nextTimeoutRef.current = window.setTimeout(() => {
       if (index + 1 >= items.length) {
         void completeSession(attemptsRef.current);
@@ -238,11 +236,11 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
         setIndex((i) => i + 1);
         setPhase('ready');
       }
-    }, RESULT_DISPLAY_MS);
+    }, resultDisplayMs);
     return () => {
       clearTimer(nextTimeoutRef);
     };
-  }, [phase, index, items.length, completeSession, clearTimer]);
+  }, [phase, index, items.length, completeSession, clearTimer, set.type]);
 
   useEffect(() => () => {
     clearTimer(readTimeoutRef);

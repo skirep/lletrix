@@ -173,11 +173,7 @@ export function EndlessRunner({ profile, itemPool, sessionType, sessionDifficult
       timedOutRef.current = true;
       stop();
       setTimeLeftMs(0);
-      if (!transcriptRef.current.trim()) {
-        setPhase('done');
-      } else {
-        evaluateCurrentAttempt(transcriptRef.current);
-      }
+      setPhase('done');
     }, durationMs);
     return () => { clearTimer(readTimeoutRef); };
   }, [phase, settings.speed, start, stop, setTranscript, clearTimer, evaluateCurrentAttempt]);
