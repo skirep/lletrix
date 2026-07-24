@@ -2,8 +2,13 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const buildId = `${process.env.npm_package_version ?? '0.0.0'}-${process.env.GITHUB_SHA?.slice(0, 8) ?? Date.now()}`
+
 export default defineConfig({
   base: '/lletrix/',
+  define: {
+    __APP_BUILD_ID__: JSON.stringify(buildId),
+  },
   plugins: [
     react(),
     VitePWA({
