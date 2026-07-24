@@ -137,7 +137,13 @@ export class WebSpeechEngine implements SpeechEngine {
       this.onEnd?.();
     };
 
-    this.recognition.start();
+    try {
+      this.recognition.start();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.onError?.(`No s'ha pogut iniciar el reconeixement: ${message}`);
+      this.recognition = null;
+    }
   }
 
   stop(): void {

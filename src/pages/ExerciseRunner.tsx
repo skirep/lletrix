@@ -228,6 +228,8 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
       return;
     }
     if (phase !== 'ready') return;
+    // Ensure any previous recognition instance is fully stopped before restarting.
+    stop();
     setTranscript('');
     transcriptRef.current = '';
     timedOutRef.current = false;
@@ -243,7 +245,7 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
     return () => {
       clearTimer(readTimeoutRef);
     };
-  }, [phase, settings.speed, settings.exerciseSpeeds, set.type, start, setTranscript, clearTimer, evaluateCurrentAttempt, handleReadTimeout]);
+  }, [phase, settings.speed, settings.exerciseSpeeds, set.type, start, stop, setTranscript, clearTimer, evaluateCurrentAttempt, handleReadTimeout]);
 
   useEffect(() => {
     if (phase !== 'listening') return;
@@ -260,9 +262,10 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
 
   // When recognition ends automatically, evaluate and transition to result phase
   useEffect(() => {
-    if (!isListening && phase === 'listening' && !timedOutRef.current) {
-      evaluateCurrentAttempt(transcriptRef.current);
-    }
+    if (phase !== 'listening' || timedOutRef.current || isListening) return;
+    const recognized = transcriptRef.current.trim();
+    if (!recognized) return;
+    evaluateCurrentAttempt(recognized);
   }, [isListening, phase, evaluateCurrentAttempt]);
 
   useEffect(() => () => {
