@@ -160,22 +160,23 @@
 }
 
 .attackCallout {
-  position: absolute;
-  z-index: 2;
-  left: 50%;
-  bottom: 10px;
+  position: relative;
+  z-index: 1;
+  grid-column: 1 / -1;
+  justify-self: center;
+  align-self: end;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
   min-width: 180px;
   width: fit-content;
+  margin-top: 8px;
   padding: 10px 14px;
   border-radius: 16px;
   background: #1e3a8a;
   color: white;
   text-align: center;
-  transform: translateX(-50%);
   box-shadow: 0 10px 24px rgba(30, 58, 138, 0.25);
   animation: attackCalloutPop 0.3s ease both;
 }
@@ -571,11 +572,11 @@
 @keyframes attackCalloutPop {
   from {
     opacity: 0;
-    transform: translate(-50%, -8px) scale(0.9);
+    transform: translateY(-8px) scale(0.9);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0) scale(1);
+    transform: translateY(0) scale(1);
   }
 }
 
