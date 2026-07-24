@@ -1,1 +1,1 @@
-export { calculateSimilarity, classifyResult, detectErrors, calculateScore, calculateXpGained } from './scorer';
+export { calculateSimilarity, classifyResult, detectErrors, calculateScore, calculateXpGained, extractSoundToken } from './scorer';

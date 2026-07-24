@@ -18,6 +18,51 @@
 
 import type { ErrorType, ReadingResult } from '../models';
 
+const SPOKEN_LETTER_MAP: Record<string, string> = {
+  a: 'a',
+  e: 'e',
+  i: 'i',
+  o: 'o',
+  u: 'u',
+  be: 'b',
+  ve: 'b',
+  ce: 'c',
+  de: 'd',
+  efa: 'f',
+  ge: 'g',
+  hac: 'h',
+  hache: 'h',
+  jota: 'j',
+  ka: 'k',
+  ele: 'l',
+  ela: 'l',
+  eme: 'm',
+  ema: 'm',
+  ene: 'n',
+  ena: 'n',
+  eneida: 'n',
+  enye: 'n',
+  enya: 'n',
+  pe: 'p',
+  cu: 'q',
+  que: 'q',
+  erre: 'r',
+  erra: 'r',
+  ese: 's',
+  essa: 's',
+  te: 't',
+  uve: 'b',
+  ube: 'b',
+  equis: 'x',
+  ix: 'x',
+  zeta: 'z',
+};
+
+const SPOKEN_BIGRAM_LETTER_MAP: Record<string, string> = {
+  'i grega': 'y',
+  'doble ve': 'w',
+};
+
 function normalize(text: string): string {
   return text
     .toLowerCase()
@@ -27,6 +72,40 @@ function normalize(text: string): string {
     // b and v are phonetically identical in Catalan/Spanish; treat them as equal
     .replace(/v/g, 'b')
     .trim();
+}
+
+/**
+ * Converts spoken text into a single-letter candidate for sound exercises.
+ * Examples:
+ *  - "be" -> "b"
+ *  - "i grega" -> "y"
+ *  - "doble ve" -> "w"
+ *  - "a" -> "a"
+ */
+export function extractSoundToken(recognized: string): string {
+  const normalized = normalize(recognized);
+  if (!normalized) return '';
+
+  if (SPOKEN_BIGRAM_LETTER_MAP[normalized]) {
+    return SPOKEN_BIGRAM_LETTER_MAP[normalized];
+  }
+
+  const words = normalized.split(/\s+/).filter(Boolean);
+  for (let i = 0; i < words.length - 1; i++) {
+    const pair = `${words[i]} ${words[i + 1]}`;
+    if (SPOKEN_BIGRAM_LETTER_MAP[pair]) {
+      return SPOKEN_BIGRAM_LETTER_MAP[pair];
+    }
+  }
+
+  for (const word of words) {
+    if (/^[a-z]$/.test(word)) return word;
+    if (SPOKEN_LETTER_MAP[word]) return SPOKEN_LETTER_MAP[word];
+  }
+
+  // Fallback: if the recognizer produced plain text, take first letter.
+  const merged = words.join('');
+  return merged ? merged[0] : '';
 }
 
 function levenshtein(a: string, b: string): number {

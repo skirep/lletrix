@@ -3,7 +3,7 @@ import styles from './ExerciseRunner.module.css';
 import { ExerciseText } from '../components/exercise';
 import { Button } from '../components/common';
 import { useSettings, useSpeechRecognition } from '../hooks';
-import { calculateSimilarity, classifyResult, detectErrors, calculateScore } from '../scoring';
+import { calculateSimilarity, classifyResult, detectErrors, calculateScore, extractSoundToken } from '../scoring';
 import { sessionStorage } from '../storage';
 import { gamificationService } from '../gamification';
 import { shuffleItems } from '../exercises';
@@ -126,13 +126,15 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
     // Try all speech alternatives and pick the one that best matches the expected text.
     // This significantly improves recognition of short syllables that aren't real words,
     // since the speech engine's top result often misidentifies them.
-    let bestText = recognizedText;
-    let bestSimilarity = calculateSimilarity(currentItem.text, recognizedText);
+    const toComparableText = (value: string) => set.type === 'sounds' ? extractSoundToken(value) : value;
+    let bestText = toComparableText(recognizedText);
+    let bestSimilarity = calculateSimilarity(currentItem.text, bestText);
     for (const alt of alternativesRef.current) {
-      const sim = calculateSimilarity(currentItem.text, alt.transcript);
+      const candidateText = toComparableText(alt.transcript);
+      const sim = calculateSimilarity(currentItem.text, candidateText);
       if (sim > bestSimilarity) {
         bestSimilarity = sim;
-        bestText = alt.transcript;
+        bestText = candidateText;
       }
     }
 
@@ -360,6 +362,12 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
 
       {/* Instruction */}
       <p className={`text-muted ${styles.instruction}`}>🎤 Llegeix en veu alta el text que apareix a la pantalla</p>
+
+      {set.type === 'sounds' && (
+        <div className={styles.soundHint} role="note" aria-live="polite">
+          <strong>🔊 Mode sons:</strong> digues només el so d&apos;una lletra (per exemple: <em>"b"</em>, <em>"a"</em>, <em>"r"</em>).
+        </div>
+      )}
 
       {/* Text to read */}
       <ExerciseText text={currentItem.text} />
