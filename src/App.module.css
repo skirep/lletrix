@@ -5,6 +5,22 @@
   z-index: 200;
 }
 
+.microphonePermissionWarning {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  left: 16px;
+  z-index: 190;
+  max-width: min(440px, calc(100vw - 32px));
+  padding: 12px 16px;
+  border: 1px solid rgba(185, 28, 28, 0.28);
+  border-radius: 16px;
+  background: rgba(255, 241, 242, 0.96);
+  color: #991b1b;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
 .appLayout {
   display: flex;
   flex-direction: column;
@@ -56,6 +72,13 @@
 }
 
 @media (max-width: 480px) {
+  .microphonePermissionWarning {
+    left: 12px;
+    right: 12px;
+    max-width: none;
+    font-size: 0.9rem;
+  }
+
   .skinArt {
     opacity: 0.18;
   }

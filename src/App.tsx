@@ -14,6 +14,8 @@ import type { Profile, AppSettings as AppSettingsData } from './models';
 import styles from './App.module.css';
 
 type Page = 'home' | 'exercises' | 'stats' | 'badges' | 'settings';
+type MicrophonePermissionState = 'unknown' | 'granted' | 'denied' | 'unsupported';
+
 const POKEMON_SKIN_ART = {
   mew: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png',
   mewtwo: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png',
@@ -22,6 +24,35 @@ const POKEMON_SKIN_ART = {
   meowth: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/52.png',
   arbok: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/24.png',
 } as const;
+
+async function requestMicrophonePermission(): Promise<Exclude<MicrophonePermissionState, 'unknown'>> {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    return 'unsupported';
+  }
+
+  const permissionsApi = navigator.permissions as Permissions | undefined;
+  if (permissionsApi?.query) {
+    try {
+      const permissionStatus = await permissionsApi.query({ name: 'microphone' as PermissionName });
+      if (permissionStatus.state === 'granted') {
+        return 'granted';
+      }
+      if (permissionStatus.state === 'denied') {
+        return 'denied';
+      }
+    } catch {
+      // Ignore unsupported permission names and fall back to requesting access.
+    }
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach((track) => track.stop());
+    return 'granted';
+  } catch {
+    return 'denied';
+  }
+}
 
 function AppSettings({ settings }: { settings: AppSettingsData }) {
   useEffect(() => {
@@ -79,7 +110,22 @@ function AppContent() {
   const [page, setPage] = useState<Page>('home');
   const [requestedExerciseSetId, setRequestedExerciseSetId] = useState<string | null>(null);
   const [autoHandling, setAutoHandling] = useState(false);
+  const [microphonePermission, setMicrophonePermission] = useState<MicrophonePermissionState>('unknown');
   const waitingForDatabaseRead = Boolean(user && loadedUserId !== user.id);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void requestMicrophonePermission().then((state) => {
+      if (!cancelled) {
+        setMicrophonePermission(state);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -110,11 +156,17 @@ function AppContent() {
       <DatabaseReadIndicator status={databaseReadStatus} errorMessage={databaseReadError} />
     </div>
   ) : null;
+  const microphonePermissionWarning = microphonePermission === 'denied' ? (
+    <div className={styles.microphonePermissionWarning} role="alert">
+      Cal activar el permís del micròfon al navegador per poder fer els exercicis de lectura en veu alta.
+    </div>
+  ) : null;
 
   if (!currentProfile) {
     return (
       <>
         {databaseIndicator}
+        {microphonePermissionWarning}
         <ProfilesPage onSelect={(p: Profile) => {
           setCurrentProfile(p);
           setPage('home');
@@ -153,6 +205,7 @@ function AppContent() {
     <>
       <AppSettings settings={settings} />
       {databaseIndicator}
+      {microphonePermissionWarning}
       <div className={styles.appLayout}>
         <BottomNav currentPage={page} onNavigate={(p) => setPage(p as Page)} />
         <main className={styles.appMain}>
