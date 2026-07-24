@@ -5,6 +5,144 @@
   gap: 24px;
 }
 
+.heroCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: radial-gradient(circle at top left, #fef3c7, #fde68a 45%, #f59e0b 140%);
+  border: 2px solid #fbbf24;
+}
+
+.heroEyebrow {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #92400e;
+  font-weight: 700;
+}
+
+.heroTitle {
+  font-size: 28px;
+  line-height: 1.1;
+  margin: 8px 0;
+  color: #78350f;
+}
+
+.heroText {
+  font-size: 15px;
+  color: #92400e;
+  max-width: 580px;
+}
+
+.heroCounter {
+  min-width: 110px;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: #7c2d12;
+  background: rgba(255,255,255,0.55);
+  border-radius: 18px;
+  padding: 18px 14px;
+}
+
+.battleCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 2px solid #93c5fd;
+}
+
+.battleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.battleBtn {
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-weight: 700;
+  background: #1d4ed8;
+  color: white;
+}
+
+.battleBtn:disabled {
+  opacity: 0.5;
+}
+
+.battleArena {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.fighterCard,
+.fighterEmpty {
+  min-height: 180px;
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: rgba(255,255,255,0.7);
+  border: 2px dashed #93c5fd;
+}
+
+.fighterCard {
+  border-style: solid;
+}
+
+.fighterArt {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+
+.fighterPlaceholder {
+  font-size: 48px;
+}
+
+.fighterName {
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.fighterMeta {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.battleResult {
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.72);
+}
+
+.battleWinner {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1d4ed8;
+}
+
+.battleScores {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.battleCommentary {
+  margin-top: 8px;
+  font-size: 15px;
+}
+
 .streakCard {
   display: flex;
   align-items: center;
@@ -35,8 +173,53 @@
   gap: 12px;
 }
 
+.sectionCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
 .sectionTitle {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.sectionText {
+  margin-top: 4px;
+  font-size: 14px;
   color: var(--color-text-muted);
+}
+
+.sectionCounter {
+  min-width: 70px;
+  text-align: center;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 15%, white 85%);
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+@media (max-width: 720px) {
+  .heroCard,
+  .battleHeader,
+  .sectionHeader {
+    flex-direction: column;
+  }
+
+  .heroCounter {
+    width: 100%;
+  }
+
+  .battleArena {
+    grid-template-columns: 1fr;
+  }
 }
