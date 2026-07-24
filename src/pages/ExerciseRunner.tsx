@@ -34,6 +34,7 @@ interface ExerciseRunnerProps {
 }
 
 const HARD_SYLLABLE_BASE_ITEMS = 50;
+const SPEECH_GRACE_MS = 200;
 
 export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) {
   const isHardSyllableMode = set.type === 'syllables' && set.difficulty === 'hard';
@@ -56,6 +57,7 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
   const itemDeadlineRef = useRef<number>(0);
   const timedOutRef = useRef(false);
   const readTimeoutRef = useRef<number | null>(null);
+  const graceTimeoutRef = useRef<number | null>(null);
   const attemptsRef = useRef<ExerciseAttempt[]>([]);
   const completingRef = useRef(false);
   const phaseRef = useRef<'ready' | 'listening' | 'done'>('ready');
@@ -115,6 +117,7 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
   const evaluateCurrentAttempt = useCallback((recognizedText: string, allowWhenTimedOut = false) => {
     if (phaseRef.current !== 'listening' || (!allowWhenTimedOut && timedOutRef.current) || !currentItem) return;
     clearTimer(readTimeoutRef);
+    clearTimer(graceTimeoutRef);
     const timeMs = Date.now() - startTimeRef.current;
 
     // Try all speech alternatives and pick the one that best matches the expected text.
@@ -164,46 +167,59 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
   const handleReadTimeout = useCallback(() => {
     if (phaseRef.current !== 'listening' || timedOutRef.current || !currentItem) return;
     clearTimer(readTimeoutRef);
-    stop();
     setTimeLeftMs(0);
+    timedOutRef.current = true;
+
+    const finalizeNoSpeech = () => {
+      const attempt: ExerciseAttempt = {
+        itemId: currentItem.id,
+        expected: currentItem.text,
+        recognized: '',
+        result: 'incorrect',
+        similarity: 0,
+        errorTypes: detectErrors(currentItem.text, ''),
+        timeMs: Date.now() - startTimeRef.current,
+        timestamp: Date.now(),
+      };
+      const updatedAttempts = [...attemptsRef.current, attempt];
+      attemptsRef.current = updatedAttempts;
+      setAttempts(updatedAttempts);
+
+      if (isHardSyllableMode) {
+        setItems((prev) => [...prev, { ...currentItem, id: `${currentItem.id}-retry-${Date.now()}` }]);
+        setIndex((i) => i + 1);
+        setPhase('ready');
+        return;
+      }
+
+      if (index + 1 < items.length) {
+        setIndex((i) => i + 1);
+        setPhase('ready');
+        return;
+      }
+
+      void completeSession(updatedAttempts);
+    };
+
+    const tryFinalizeFromCapturedSpeech = () => {
+      const recognized = transcriptRef.current.trim();
+      stop();
+      if (recognized) {
+        evaluateCurrentAttempt(recognized, true);
+        return;
+      }
+      finalizeNoSpeech();
+    };
 
     const recognizedAtTimeout = transcriptRef.current.trim();
     if (recognizedAtTimeout) {
-      timedOutRef.current = true;
+      stop();
       evaluateCurrentAttempt(recognizedAtTimeout, true);
       return;
     }
 
-    timedOutRef.current = true;
-
-    const attempt: ExerciseAttempt = {
-      itemId: currentItem.id,
-      expected: currentItem.text,
-      recognized: '',
-      result: 'incorrect',
-      similarity: 0,
-      errorTypes: detectErrors(currentItem.text, ''),
-      timeMs: Date.now() - startTimeRef.current,
-      timestamp: Date.now(),
-    };
-    const updatedAttempts = [...attemptsRef.current, attempt];
-    attemptsRef.current = updatedAttempts;
-    setAttempts(updatedAttempts);
-
-    if (isHardSyllableMode) {
-      setItems((prev) => [...prev, { ...currentItem, id: `${currentItem.id}-retry-${Date.now()}` }]);
-      setIndex((i) => i + 1);
-      setPhase('ready');
-      return;
-    }
-
-    if (index + 1 < items.length) {
-      setIndex((i) => i + 1);
-      setPhase('ready');
-      return;
-    }
-
-    void completeSession(updatedAttempts);
+    clearTimer(graceTimeoutRef);
+    graceTimeoutRef.current = window.setTimeout(tryFinalizeFromCapturedSpeech, SPEECH_GRACE_MS);
   }, [clearTimer, stop, currentItem, isHardSyllableMode, index, items.length, completeSession, evaluateCurrentAttempt]);
 
   useEffect(() => {
@@ -270,6 +286,7 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
 
   useEffect(() => () => {
     clearTimer(readTimeoutRef);
+    clearTimer(graceTimeoutRef);
     stop();
   }, [clearTimer, stop]);
 
