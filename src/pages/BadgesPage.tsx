@@ -8,23 +8,23 @@ const POKEDEX_SECTIONS = [
   {
     id: 'syllables-route',
     title: 'Camí de síl·labes',
-    description: 'Pokémon que creixen completant els conjunts de síl·labes, des del nivell fàcil fins al repte de 100.',
+    description: 'Pokémon que creixen completant els conjunts de síl·labes. Cada un s’activa a un percentatge diferent.',
     match: (pokemon: PokemonCollectionItem) => pokemon.exerciseType === 'syllables',
-    evolutionLabel: 'Bulbasaur → Ivysaur → Venusaur',
+    evolutionLabel: '40% → 60% → 80% → 95%',
   },
   {
     id: 'words-route',
     title: 'Camí de paraules',
-    description: 'La branca més ofensiva: paraules fàcils, mitjanes i difícils per fer créixer l’atac.',
+    description: 'Paraules fàcils, mitjanes i difícils: a mesura que puges el percentatge, apareixen Pokémon més potents.',
     match: (pokemon: PokemonCollectionItem) => pokemon.exerciseType === 'words',
-    evolutionLabel: 'Charmander → Charmeleon → Charizard',
+    evolutionLabel: '40% → 60% → 80% → 95%',
   },
   {
     id: 'sentences-route',
     title: 'Camí de frases',
-    description: 'La ruta més tècnica. Aquí viuen els Pokémon més forts, inclosa la Mew.',
+    description: 'La ruta més tècnica. Aquí es troben els Pokémon més difícils i la fita Mew.',
     match: (pokemon: PokemonCollectionItem) => pokemon.exerciseType === 'sentences',
-    evolutionLabel: 'Dratini → Dragonair → Mew',
+    evolutionLabel: '40% → 60% → 80% → 95%',
   },
 ] as const;
 
@@ -53,6 +53,7 @@ interface BattleTurn {
   attackName: string;
   damage: number;
   defenderHp: number;
+  isSpecialAttack: boolean;
 }
 
 interface BattleResult {
@@ -84,6 +85,10 @@ function getAttackLine(attacker: PokemonCollectionItem, turnIndex: number) {
   const difficultyAttacks = ATTACKS_BY_DIFFICULTY[attacker.difficulty];
   const attackPool = [...typeAttacks, ...difficultyAttacks];
   return attackPool[turnIndex % attackPool.length] ?? attackPool[0];
+}
+
+function getSpecialAttackLine(attacker: PokemonCollectionItem) {
+  return attacker.specialAttackName ?? `${attacker.name} absolut`;
 }
 
 function getBattleSummary(winner: PokemonCollectionItem, loser: PokemonCollectionItem, winnerPower: number, loserPower: number) {
@@ -146,16 +151,18 @@ export function BadgesPage({ profile }: BadgesPageProps) {
       const defender = fighterStates[defenderIndex].pokemon;
       const damageBase = Math.max(8, Math.round(attacker.power * 0.18));
       const difficultyBonus = attacker.difficulty === 'easy' ? 2 : attacker.difficulty === 'medium' ? 5 : 9;
-      const damage = damageBase + difficultyBonus + Math.floor(Math.random() * 10);
+      const isSpecialAttack = attacker.specialAttackUnlocked && round === 0;
+      const damage = damageBase + difficultyBonus + Math.floor(Math.random() * 10) + (isSpecialAttack ? 22 : 0);
       fighterStates[defenderIndex].currentHp = Math.max(0, fighterStates[defenderIndex].currentHp - damage);
 
       turns.push({
         attackerId: attacker.pokemonId,
         attackerName: attacker.name,
         defenderName: defender.name,
-        attackName: getAttackLine(attacker, round),
+        attackName: isSpecialAttack ? getSpecialAttackLine(attacker) : getAttackLine(attacker, round),
         damage,
         defenderHp: fighterStates[defenderIndex].currentHp,
+        isSpecialAttack,
       });
 
       attackerIndex = defenderIndex;
@@ -279,15 +286,15 @@ export function BadgesPage({ profile }: BadgesPageProps) {
         </div>
 
         {battleResult && (
-          <div className={styles.battleResult}>
+          <div className={styles.battleResult} key={battleResult.turns.length}>
             <div className={styles.battleWinner}>{battleResult.winner.name} guanya!</div>
             <div className={styles.battleScores}>
               {battleResult.winner.name}: {battleResult.winnerPower} · {battleResult.loser.name}: {battleResult.loserPower}
             </div>
             <div className={styles.battleLog}>
               {battleResult.turns.map((turn, index) => (
-                <div key={`${turn.attackerId}-${index}`} className={styles.battleLine}>
-                  {turn.attackerName} usa {turn.attackName} contra {turn.defenderName} i fa {turn.damage} de mal. HP restant: {turn.defenderHp}
+                <div key={`${turn.attackerId}-${index}`} className={`${styles.battleLine} ${turn.isSpecialAttack ? styles.battleLineSpecial : ''}`}>
+                  {turn.attackerName} {turn.isSpecialAttack ? 'desplega' : 'usa'} {turn.attackName} contra {turn.defenderName} i fa {turn.damage} de mal. HP restant: {turn.defenderHp}
                 </div>
               ))}
             </div>
@@ -327,14 +334,15 @@ export function BadgesPage({ profile }: BadgesPageProps) {
               <div className={styles.sectionCounter}>{sectionUnlocked}/{sectionCollection.length}</div>
             </div>
             <div className={styles.evolutionTrack}>
-              {sectionCollection.map((pokemon, index) => (
-                <div key={pokemon.pathId} className={styles.evolutionNodeWrap}>
-                  <div className={`${styles.evolutionNode} ${pokemon.unlocked ? styles.evolutionNodeUnlocked : styles.evolutionNodeLocked}`}>
-                    {pokemon.imageUrl ? <img className={styles.evolutionArt} src={pokemon.imageUrl} alt={pokemon.name} /> : <span>{pokemon.unlocked ? '⚡' : '🔒'}</span>}
-                    <div className={styles.evolutionName}>{pokemon.name}</div>
-                    <div className={styles.evolutionDifficulty}>{pokemon.difficulty}</div>
+              {[40, 60, 80, 95].map((threshold, index) => (
+                <div key={`${section.id}-${threshold}`} className={styles.evolutionNodeWrap}>
+                  <div className={styles.evolutionNodeHint}>
+                    <div className={styles.evolutionNodeHintPercent}>{threshold}%</div>
+                    <div className={styles.evolutionNodeHintLabel}>
+                      {index === 0 ? 'Bronze' : index === 1 ? 'Plata' : index === 2 ? 'Or' : 'Llegenda'}
+                    </div>
                   </div>
-                  {index < sectionCollection.length - 1 && <div className={styles.evolutionArrow}>→</div>}
+                  {index < 3 && <div className={styles.evolutionArrow}>→</div>}
                 </div>
               ))}
             </div>

@@ -52,7 +52,9 @@ export interface PokemonPath {
   exerciseType: PokemonExerciseType;
   difficulty: Difficulty;
   setIds: string[];
+  minScorePercent: number;
   basePower: number;
+  tierLabel: string;
   description: string;
 }
 
@@ -71,6 +73,9 @@ export interface PokemonCollectionItem extends PokemonPath, PokemonDetails {
   progressPercent: number;
   bestScore: number;
   power: number;
+  specialAttackUnlocked: boolean;
+  specialAttackName: string | null;
+  specialAttackCondition: string | null;
 }
 
 export interface DailyGoal {
@@ -169,98 +174,68 @@ export const BADGES: Record<BadgeId, Badge> = {
   },
 };
 
-export const POKEMON_PATHS: PokemonPath[] = [
+const POKEMON_STAGE_THRESHOLDS = [
+  { key: 'bronze', label: 'Bronze', minScorePercent: 40, powerBonus: 0 },
+  { key: 'silver', label: 'Plata', minScorePercent: 60, powerBonus: 12 },
+  { key: 'gold', label: 'Or', minScorePercent: 80, powerBonus: 28 },
+  { key: 'legend', label: 'Llegenda', minScorePercent: 95, powerBonus: 46 },
+] as const;
+
+const POKEMON_TRACKS = [
   {
-    pathId: 'bulbasaur-syllables',
-    pokemonId: 1,
-    fallbackName: 'Bulbasaur',
-    exerciseType: 'syllables',
-    difficulty: 'easy',
-    setIds: ['syl-easy-1', 'syl-easy-2', 'syl-easy-3'],
+    exerciseType: 'syllables' as const,
     basePower: 18,
-    description: 'Aprèn les síl·labes bàsiques i posa en marxa el teu primer company de lectura.',
+    description: 'La branca de síl·labes creix des del bàsic fins al gran repte de 100.',
+    setIds: ['syl-easy-1', 'syl-easy-2', 'syl-easy-3', 'syl-medium-1', 'syl-medium-2', 'syl-medium-3', 'syl-hard-100'],
   },
   {
-    pathId: 'ivysaur-syllables',
-    pokemonId: 2,
-    fallbackName: 'Ivysaur',
-    exerciseType: 'syllables',
-    difficulty: 'medium',
-    setIds: ['syl-medium-1', 'syl-medium-2', 'syl-medium-3'],
-    basePower: 36,
-    description: 'Les síl·labes travades fan créixer la força del teu equip.',
+    exerciseType: 'words' as const,
+    basePower: 28,
+    description: 'La branca de paraules transforma cada percentatge en més potència d’atac.',
+    setIds: ['words-easy-1', 'words-easy-2', 'words-easy-3', 'words-easy-4', 'words-easy-5', 'words-medium-1', 'words-medium-2', 'words-medium-3', 'words-hard-1', 'words-hard-2', 'words-hard-3', 'w-hard-100'],
   },
   {
-    pathId: 'venusaur-syllables',
-    pokemonId: 3,
-    fallbackName: 'Venusaur',
-    exerciseType: 'syllables',
-    difficulty: 'hard',
-    setIds: ['syl-hard-100'],
-    basePower: 58,
-    description: 'El gran repte de 100 síl·labes converteix aquesta branca en una potència estable.',
+    exerciseType: 'sentences' as const,
+    basePower: 42,
+    description: 'La branca de frases culmina en el Pokémon més tècnic i llegendari.',
+    setIds: ['sent-easy-1', 'sent-easy-2', 'sent-easy-3', 'sent-medium-1', 'sent-medium-2', 'sent-medium-3', 'sent-hard-1', 'sent-hard-2', 'sent-hard-3', 'f-hard-100'],
   },
-  {
-    pathId: 'charmander-words',
-    pokemonId: 4,
-    fallbackName: 'Charmander',
-    exerciseType: 'words',
-    difficulty: 'easy',
-    setIds: ['words-easy-1', 'words-easy-2', 'words-easy-3', 'words-easy-4', 'words-easy-5'],
-    basePower: 24,
-    description: 'Les primeres paraules donen velocitat i confiança al teu atac.',
-  },
-  {
-    pathId: 'charmeleon-words',
-    pokemonId: 5,
-    fallbackName: 'Charmeleon',
-    exerciseType: 'words',
-    difficulty: 'medium',
-    setIds: ['words-medium-1', 'words-medium-2', 'words-medium-3'],
-    basePower: 44,
-    description: 'Paraules més llargues i específiques encenen una fase molt més ofensiva.',
-  },
-  {
-    pathId: 'charizard-words',
-    pokemonId: 6,
-    fallbackName: 'Charizard',
-    exerciseType: 'words',
-    difficulty: 'hard',
-    setIds: ['words-hard-1', 'words-hard-2', 'words-hard-3', 'w-hard-100'],
-    basePower: 72,
-    description: 'Dominar les paraules difícils activa una de les bèsties més fortes de la Pokédex.',
-  },
-  {
-    pathId: 'dratini-sentences',
-    pokemonId: 147,
-    fallbackName: 'Dratini',
-    exerciseType: 'sentences',
-    difficulty: 'easy',
-    setIds: ['sent-easy-1', 'sent-easy-2', 'sent-easy-3'],
-    basePower: 34,
-    description: 'Les frases senzilles obren la porta a una línia llegendària molt precisa.',
-  },
-  {
-    pathId: 'dragonair-sentences',
-    pokemonId: 148,
-    fallbackName: 'Dragonair',
-    exerciseType: 'sentences',
-    difficulty: 'medium',
-    setIds: ['sent-medium-1', 'sent-medium-2', 'sent-medium-3'],
-    basePower: 62,
-    description: 'Amb frases mitjanes, la teva lectura guanya elegància i resistència.',
-  },
-  {
-    pathId: 'mew-sentences',
-    pokemonId: 151,
-    fallbackName: 'Mew',
-    exerciseType: 'sentences',
-    difficulty: 'hard',
-    setIds: ['sent-hard-1', 'sent-hard-2', 'sent-hard-3', 'f-hard-100'],
-    basePower: 96,
-    description: 'Les frases difícils i llargues desbloquegen el Pokémon més tècnic i poderós.',
-  },
-];
+] as const;
+
+function buildPokemonPaths(): PokemonPath[] {
+  const paths: PokemonPath[] = [];
+  let pokemonId = 1;
+
+  for (const track of POKEMON_TRACKS) {
+    for (const setId of track.setIds) {
+      for (const stage of POKEMON_STAGE_THRESHOLDS) {
+        const isLegendarySentencePath = track.exerciseType === 'sentences' && setId === 'f-hard-100' && stage.key === 'legend';
+        const assignedPokemonId = isLegendarySentencePath ? 151 : pokemonId;
+
+        paths.push({
+          pathId: `${setId}-${stage.key}`,
+          pokemonId: assignedPokemonId,
+          fallbackName: isLegendarySentencePath ? 'Mew' : `Pokémon ${assignedPokemonId}`,
+          exerciseType: track.exerciseType,
+          difficulty: setId.includes('easy') ? 'easy' : setId.includes('medium') ? 'medium' : 'hard',
+          setIds: [setId],
+          minScorePercent: stage.minScorePercent,
+          basePower: track.basePower + stage.powerBonus,
+          tierLabel: stage.label,
+          description: `${track.description} Objectiu mínim: ${stage.minScorePercent}%.`,
+        });
+
+        if (!isLegendarySentencePath) {
+          pokemonId += 1;
+        }
+      }
+    }
+  }
+
+  return paths;
+}
+
+export const POKEMON_PATHS: PokemonPath[] = buildPokemonPaths();
 
 
 /** Number of exercises a player must complete each day to meet the daily goal. */

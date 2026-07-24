@@ -3,3 +3,5 @@ export { useSpeechRecognition } from './useSpeechRecognition';
 export { useSettings } from './useSettings';
 export { useGamification } from './useGamification';
 export { usePokemonCollection } from './usePokemonCollection';
+export { useRecommendedMission } from './useRecommendedMission';
+export type { RecommendedMission } from './useRecommendedMission';

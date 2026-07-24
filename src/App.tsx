@@ -77,6 +77,7 @@ function AppContent() {
   } = useProfiles(user?.id);
   const { settings, update: updateSettings } = useSettings(currentProfile?.id ?? null);
   const [page, setPage] = useState<Page>('home');
+  const [requestedExerciseSetId, setRequestedExerciseSetId] = useState<string | null>(null);
   const [autoHandling, setAutoHandling] = useState(false);
   const waitingForDatabaseRead = Boolean(user && loadedUserId !== user.id);
 
@@ -124,8 +125,24 @@ function AppContent() {
 
   const renderPage = () => {
     switch (page) {
-      case 'home': return <HomePage profile={currentProfile} onNavigate={(p) => setPage(p as Page)} onSwitchProfile={() => setCurrentProfile(null)} />;
-      case 'exercises': return <ExercisesPage profile={currentProfile} />;
+      case 'home': return (
+        <HomePage
+          profile={currentProfile}
+          onNavigate={(p) => setPage(p as Page)}
+          onStartMission={(setId) => {
+            setRequestedExerciseSetId(setId);
+            setPage('exercises');
+          }}
+          onSwitchProfile={() => setCurrentProfile(null)}
+        />
+      );
+      case 'exercises': return (
+        <ExercisesPage
+          profile={currentProfile}
+          initialSetId={requestedExerciseSetId}
+          onInitialSetConsumed={() => setRequestedExerciseSetId(null)}
+        />
+      );
       case 'stats': return <StatsPage profile={currentProfile} />;
       case 'badges': return <BadgesPage profile={currentProfile} />;
       case 'settings': return <SettingsPage profile={currentProfile} settings={settings} onUpdateSettings={updateSettings} onUpdateProfile={async (p) => { await updateProfile(p); setCurrentProfile(p); }} />;

@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './ExercisesPage.module.css';
 import { Button } from '../components/common';
 import { ExerciseRunner } from './ExerciseRunner';
 import { EndlessRunner } from './EndlessRunner';
-import { getAllSets, getSetsByType, getSetsByTypeAndDifficulty } from '../exercises';
+import { getAllSets, getSetById, getSetsByType, getSetsByTypeAndDifficulty } from '../exercises';
+import { PokemonCollection } from '../components/gamification';
+import { usePokemonCollection, useRecommendedMission } from '../hooks';
 import type { ExerciseType, Difficulty, ExerciseSet, ExerciseItem, Profile } from '../models';
 
 /**
@@ -38,13 +40,17 @@ const DIFFICULTY_LABELS: Record<Difficulty, string> = {
 
 interface ExercisesPageProps {
   profile: Profile;
+  initialSetId?: string | null;
+  onInitialSetConsumed?: () => void;
 }
 
-export function ExercisesPage({ profile }: ExercisesPageProps) {
+export function ExercisesPage({ profile, initialSetId = null, onInitialSetConsumed }: ExercisesPageProps) {
+  const { collection: pokemonCollection, loading: pokemonLoading } = usePokemonCollection(profile.id);
+  const { mission, loading: missionLoading, refresh: refreshMission } = useRecommendedMission(profile.id);
   const [selectedType, setSelectedType] = useState<ExerciseType | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | null>(null);
-  const [selectedSet, setSelectedSet] = useState<ExerciseSet | null>(null);
-  const [running, setRunning] = useState(false);
+  const [selectedSet, setSelectedSet] = useState<ExerciseSet | null>(() => initialSetId ? getSetById(initialSetId) ?? null : null);
+  const [running, setRunning] = useState(() => Boolean(initialSetId && getSetById(initialSetId)));
   const [endlessRunning, setEndlessRunning] = useState(false);
   const [endlessPool, setEndlessPool] = useState<ExerciseItem[]>([]);
   const [endlessLabel, setEndlessLabel] = useState('');
@@ -57,6 +63,21 @@ export function ExercisesPage({ profile }: ExercisesPageProps) {
     : selectedType
     ? getSetsByType(selectedType)
     : getAllSets();
+  const featuredPokemon = (selectedType
+    ? pokemonCollection.filter((pokemon) => pokemon.exerciseType === selectedType)
+    : pokemonCollection
+  ).slice(0, 6);
+
+  useEffect(() => {
+    if (initialSetId) onInitialSetConsumed?.();
+  }, [initialSetId, onInitialSetConsumed]);
+
+  const startMission = (set: ExerciseSet) => {
+    setSelectedType(set.type);
+    setSelectedDifficulty(set.difficulty);
+    setSelectedSet(set);
+    setRunning(true);
+  };
 
   if (running && selectedSet) {
     return (
@@ -66,6 +87,7 @@ export function ExercisesPage({ profile }: ExercisesPageProps) {
         onFinish={() => {
           setRunning(false);
           setSelectedSet(null);
+          refreshMission();
         }}
       />
     );
@@ -102,6 +124,40 @@ export function ExercisesPage({ profile }: ExercisesPageProps) {
           <p><strong>Mode sense fi:</strong> llegeix elements un darrere l'altre fins que cometis un error. Intenta fer la ratxa més llarga possible!</p>
         </div>
       </details>
+
+      {(mission || missionLoading) && (
+        <section className={styles.missionBanner}>
+          {missionLoading || !mission ? (
+            <span>Calculant la teva missió...</span>
+          ) : (
+            <>
+              <div className={styles.missionBannerText}>
+                <span className={styles.missionBannerLabel}>Repte recomanat · Objectiu {mission.targetScore}%</span>
+                <strong>{mission.set.title}</strong>
+                <span>{mission.reason}</span>
+              </div>
+              <Button onClick={() => startMission(mission.set)}>Jugar ara</Button>
+            </>
+          )}
+        </section>
+      )}
+
+      <section className={`card ${styles.pokemonSection}`}>
+        <div className={styles.pokemonSectionHeader}>
+          <div>
+            <h2 className={styles.sectionTitle}>Pokémon del teu camí</h2>
+            <p className={styles.pokemonSectionText}>
+              Veus els Pokémon que pots desbloquejar mentre tries el nivell. Si filtres per tipus, el llistat s’actualitza.
+            </p>
+          </div>
+          <div className={styles.pokemonCounter}>{featuredPokemon.filter((pokemon) => pokemon.unlocked).length}/{featuredPokemon.length || 0}</div>
+        </div>
+        <PokemonCollection
+          collection={featuredPokemon}
+          loading={pokemonLoading}
+          emptyMessage="Encara no hi ha Pokémon disponibles per mostrar."
+        />
+      </section>
 
       {/* Type selection */}
       <section className={styles.section}>
@@ -171,7 +227,7 @@ export function ExercisesPage({ profile }: ExercisesPageProps) {
       )}
 
       {/* Endless mode */}
-      <section className={styles.section}>
+      <section className={`${styles.section} ${styles.endlessSection}`}>
         <h2 className={styles.sectionTitle}>🔄 Mode sense fi</h2>
         <p className={styles.endlessDesc}>
           Llegeix elements sense parar fins que cometis un error.

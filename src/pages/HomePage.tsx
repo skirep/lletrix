@@ -2,19 +2,21 @@ import styles from './HomePage.module.css';
 import { Avatar, ProgressBar } from '../components/common';
 import { StreakDisplay } from '../components/gamification';
 import { Button } from '../components/common';
-import { useProfileStats, useGamification } from '../hooks';
+import { useProfileStats, useGamification, useRecommendedMission } from '../hooks';
 import { getXpToNextLevel } from '../models';
 import type { Profile } from '../models';
 
 interface HomePageProps {
   profile: Profile;
   onNavigate: (page: string) => void;
+  onStartMission: (setId: string) => void;
   onSwitchProfile: () => void;
 }
 
-export function HomePage({ profile, onNavigate, onSwitchProfile }: HomePageProps) {
+export function HomePage({ profile, onNavigate, onStartMission, onSwitchProfile }: HomePageProps) {
   const stats = useProfileStats(profile.id);
   const { streak, dailyGoal } = useGamification(profile.id);
+  const { mission, loading: missionLoading } = useRecommendedMission(profile.id);
   const xpInfo = stats ? getXpToNextLevel(stats.experience) : null;
 
   return (
@@ -76,6 +78,36 @@ export function HomePage({ profile, onNavigate, onSwitchProfile }: HomePageProps
 
       {/* Streak */}
       {streak && <StreakDisplay streak={streak} />}
+
+      {(mission || missionLoading) && (
+        <section className={`card ${styles.missionCard}`}>
+          {missionLoading || !mission ? (
+            <div className={styles.missionLoading}>Preparant la teva següent missió...</div>
+          ) : (
+            <>
+              <div className={styles.missionTopline}>
+                <span className={styles.missionLabel}>Missió recomanada</span>
+                <span className={styles.missionTarget}>Objectiu {mission.targetScore}%</span>
+              </div>
+              <h2 className={styles.missionTitle}>{mission.set.title}</h2>
+              <p className={styles.missionReason}>{mission.reason}</p>
+              <div className={styles.missionProgress}>
+                <div className={styles.missionProgressHeader}>
+                  <span>Millor marca</span>
+                  <strong>{mission.bestScore}%</strong>
+                </div>
+                <ProgressBar value={mission.bestScore} max={mission.targetScore} color="#dc2626" />
+              </div>
+              <div className={styles.missionFooter}>
+                <span>{mission.set.items.length} elements · {mission.attempts === 0 ? 'Repte nou' : `${mission.attempts} intents`}</span>
+                <Button size="lg" onClick={() => onStartMission(mission.set.id)}>
+                  Començar missió
+                </Button>
+              </div>
+            </>
+          )}
+        </section>
+      )}
 
       {/* Quick actions */}
       <details className="info-box">

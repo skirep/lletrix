@@ -8,24 +8,23 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      strategies: 'generateSW',
+      filename: 'sw.js',
+      includeAssets: ['favicon.svg'],
       manifest: {
         name: 'Lletrix - Aprèn a Llegir',
         short_name: 'Lletrix',
         description: 'Aplicació de lectura per a nens en català',
+        lang: 'ca',
         theme_color: '#6366f1',
         background_color: '#ffffff',
         display: 'standalone',
         icons: [
           {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
+            src: 'favicon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any',
           },
         ],
       },

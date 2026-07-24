@@ -54,6 +54,9 @@ export function PokemonCollection({
               )}
               <div className={styles.name}>{pokemon.name}</div>
               <div className={styles.power}>Força {pokemon.power}</div>
+              {pokemon.specialAttackUnlocked && pokemon.specialAttackName && (
+                <div className={styles.specialAttack}>{pokemon.specialAttackName}</div>
+              )}
               <div className={styles.progressBlock}>
                 <div className={styles.progressHeader}>
                   <span>Progrés</span>
@@ -90,6 +93,9 @@ export function PokemonCollection({
             )}
             <div className={styles.name}>{pokemon.name}</div>
             <div className={styles.power}>Força {pokemon.power}</div>
+            {pokemon.specialAttackUnlocked && pokemon.specialAttackName && (
+              <div className={styles.specialAttack}>{pokemon.specialAttackName}</div>
+            )}
             <div className={styles.progressBlock}>
               <div className={styles.progressHeader}>
                 <span>Progrés</span>

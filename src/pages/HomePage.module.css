@@ -61,6 +61,70 @@
   font-weight: 600;
 }
 
+.missionCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: hidden;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.96), rgba(254, 242, 242, 0.94)),
+    repeating-linear-gradient(135deg, transparent 0 18px, rgba(220, 38, 38, 0.05) 18px 20px);
+  border: 2px solid rgba(220, 38, 38, 0.28);
+  box-shadow: 0 16px 30px rgba(127, 29, 29, 0.1);
+}
+
+.missionTopline,
+.missionProgressHeader,
+.missionFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.missionLabel {
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.missionTarget {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #b91c1c;
+  color: white;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.missionTitle {
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.missionReason,
+.missionLoading {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.missionProgress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.missionProgressHeader {
+  font-size: 13px;
+}
+
+.missionFooter {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
 .actions {
   display: flex;
   flex-direction: column;
@@ -76,4 +140,15 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+@media (max-width: 620px) {
+  .missionFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .missionFooter :global(button) {
+    width: 100%;
+  }
 }

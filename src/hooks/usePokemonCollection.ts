@@ -15,30 +15,32 @@ export function usePokemonCollection(profileId: string | null) {
 
     const load = async () => {
       const sessions = profileId ? await sessionStorage.getAllByProfile(profileId) : [];
-      const successfulSessions = sessions.filter((session) => session.score >= 60);
 
       const nextCollection = await Promise.all(
         POKEMON_PATHS.map(async (path) => {
           const pokemon = await pokeApiService.getPokemon(path.pokemonId, path.fallbackName);
-          const relevantSessions = successfulSessions.filter((session) => path.setIds.includes(session.setId));
-          const completedSetIds = Array.from(new Set(relevantSessions.map((session) => session.setId)));
-          const assignedExerciseTitles = path.setIds.map((setId) => getSetById(setId)?.title ?? setId);
-          const unlocked = completedSetIds.length > 0;
+          const relevantSessions = sessions.filter((session) => path.setIds.includes(session.setId));
           const bestScore = relevantSessions.length > 0
             ? Math.max(...relevantSessions.map((session) => session.score))
             : 0;
+          const unlocked = bestScore >= path.minScorePercent;
+          const completedSetIds = unlocked ? [...path.setIds] : [];
+          const assignedExerciseTitles = path.setIds.map((setId) => getSetById(setId)?.title ?? setId);
+          const progressPercent = Math.min(1, bestScore / path.minScorePercent);
           const averageScore = relevantSessions.length > 0
             ? relevantSessions.reduce((sum, session) => sum + session.score, 0) / relevantSessions.length
             : 0;
-          const progressPercent = path.setIds.length > 0 ? completedSetIds.length / path.setIds.length : 0;
           const power = path.basePower
-            + (completedSetIds.length * 9)
-            + Math.round(averageScore / 6)
-            + Math.min(relevantSessions.length * 2, 18);
+            + Math.round(bestScore * 0.65)
+            + Math.round(averageScore / 8)
+            + (unlocked ? 14 : 0);
           const firstAssignedTitle = assignedExerciseTitles[0] ?? 'el primer exercici del camí';
+          const specialAttackUnlocked = path.exerciseType === 'sentences' && bestScore === 100;
+          const specialAttackName = specialAttackUnlocked ? `${pokemon.name} absolut` : null;
+          const specialAttackCondition = specialAttackUnlocked ? 'Atac especial desbloquejat per fer 100% en frases' : null;
           const unlockCondition = unlocked
-            ? `${completedSetIds.length}/${path.setIds.length} exercicis superats · millor puntuació ${bestScore}%`
-            : `Completa ${firstAssignedTitle}`;
+            ? `${bestScore}% sobre ${path.minScorePercent}% · ${path.tierLabel}`
+            : `Aconsegueix ${path.minScorePercent}% a ${firstAssignedTitle}`;
 
           return {
             ...path,
@@ -51,6 +53,9 @@ export function usePokemonCollection(profileId: string | null) {
             progressPercent,
             bestScore,
             power,
+            specialAttackUnlocked,
+            specialAttackName,
+            specialAttackCondition,
           } satisfies PokemonCollectionItem;
         }),
       );
