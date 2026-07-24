@@ -163,7 +163,8 @@ export function EndlessRunner({ profile, itemPool, sessionType, sessionDifficult
     transcriptRef.current = '';
     setLastResult(null);
     timedOutRef.current = false;
-    const durationMs = Math.max(1000, Math.round(settings.speed * 1000));
+    const configuredSeconds = settings.exerciseSpeeds?.[sessionType] ?? settings.speed;
+    const durationMs = Math.max(1000, Math.round(configuredSeconds * 1000));
     startTimeRef.current = Date.now();
     itemDeadlineRef.current = startTimeRef.current + durationMs;
     setTimeLeftMs(durationMs);
@@ -176,7 +177,7 @@ export function EndlessRunner({ profile, itemPool, sessionType, sessionDifficult
       setPhase('done');
     }, durationMs);
     return () => { clearTimer(readTimeoutRef); };
-  }, [phase, settings.speed, start, stop, setTranscript, clearTimer, evaluateCurrentAttempt]);
+  }, [phase, settings.speed, settings.exerciseSpeeds, sessionType, start, stop, setTranscript, clearTimer, evaluateCurrentAttempt]);
 
   // Timer countdown
   useEffect(() => {

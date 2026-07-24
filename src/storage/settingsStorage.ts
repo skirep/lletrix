@@ -14,6 +14,19 @@ function normalizeSpeed(speed: number): number {
   return 1;
 }
 
+function normalizeExerciseSpeeds(
+  speeds: Partial<AppSettings['exerciseSpeeds']> | undefined,
+  fallbackSpeed: number,
+): AppSettings['exerciseSpeeds'] {
+  const fallback = normalizeSpeed(fallbackSpeed);
+  return {
+    syllables: normalizeSpeed(speeds?.syllables ?? fallback),
+    words: normalizeSpeed(speeds?.words ?? fallback),
+    pseudowords: normalizeSpeed(speeds?.pseudowords ?? fallback),
+    sentences: normalizeSpeed(speeds?.sentences ?? fallback),
+  };
+}
+
 function normalizeSkin(skin: AppSettings['skin'] | undefined): AppSettings['skin'] {
   return ALLOWED_SKINS.includes(skin ?? 'original') ? (skin ?? 'original') : 'original';
 }
@@ -29,7 +42,8 @@ export async function loadSettingsFromSupabase(profileId: string): Promise<void>
   if (error || !data) return;
   const cloudSettings: AppSettings = {
     profileId,
-    speed: data.speed as number,
+    speed: normalizeSpeed(data.speed as number),
+    exerciseSpeeds: normalizeExerciseSpeeds(undefined, data.speed as number),
     fontSize: data.font_size as AppSettings['fontSize'],
     fontFamily: data.font_family as AppSettings['fontFamily'],
     colorScheme: data.color_scheme as AppSettings['colorScheme'],
@@ -78,6 +92,7 @@ export const settingsStorage = {
       ...settings,
       profileId,
       speed: normalizeSpeed(settings.speed),
+      exerciseSpeeds: normalizeExerciseSpeeds(settings.exerciseSpeeds, settings.speed),
       skin: normalizeSkin(settings.skin),
     };
 
@@ -96,7 +111,22 @@ export const settingsStorage = {
 
   async update(profileId: string, partial: Partial<Omit<AppSettings, 'profileId'>>): Promise<AppSettings> {
     const current = await this.get(profileId);
-    const updated = { ...current, ...partial };
+    const mergedExerciseSpeeds = partial.exerciseSpeeds
+      ? { ...current.exerciseSpeeds, ...partial.exerciseSpeeds }
+      : current.exerciseSpeeds;
+
+    const partialSpeed = partial.speed !== undefined ? normalizeSpeed(partial.speed) : undefined;
+    const baseSpeed = partialSpeed ?? current.speed;
+    const normalizedExerciseSpeeds = normalizeExerciseSpeeds(mergedExerciseSpeeds, baseSpeed);
+
+    const updated: AppSettings = {
+      ...current,
+      ...partial,
+      speed: partialSpeed ?? normalizedExerciseSpeeds.syllables,
+      exerciseSpeeds: normalizedExerciseSpeeds,
+      skin: normalizeSkin((partial.skin ?? current.skin) as AppSettings['skin']),
+    };
+
     await db.settings.put(updated);
     void syncSettingsToSupabase(updated);
     return updated;

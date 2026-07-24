@@ -16,7 +16,8 @@ import type { ExerciseSet, Profile, ExerciseAttempt, ExerciseSession, ReadingRes
  * Item lifecycle (phase state machine):
  *  'ready'     → Speech recognition starts; a countdown timer is shown.
  *  'listening' → Microphone is open; the player reads the displayed text aloud.
- *                The item times out after `settings.speed` seconds if no speech
+ *                The item times out after the configured seconds for this
+ *                exercise type if no speech is detected.
  *                is detected.
  *  'result'    → The recognised text is compared to the expected text and
  *                classified as correct / almost / incorrect.  Feedback is shown
@@ -202,7 +203,8 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
     transcriptRef.current = '';
     setLastResult(null);
     timedOutRef.current = false;
-    const durationMs = Math.max(1000, Math.round(settings.speed * 1000));
+    const configuredSeconds = settings.exerciseSpeeds?.[set.type] ?? settings.speed;
+    const durationMs = Math.max(1000, Math.round(configuredSeconds * 1000));
     startTimeRef.current = Date.now();
     itemDeadlineRef.current = startTimeRef.current + durationMs;
     setTimeLeftMs(durationMs);
@@ -213,7 +215,7 @@ export function ExerciseRunner({ profile, set, onFinish }: ExerciseRunnerProps) 
     return () => {
       clearTimer(readTimeoutRef);
     };
-  }, [phase, settings.speed, start, setTranscript, clearTimer, evaluateCurrentAttempt, handleReadTimeout]);
+  }, [phase, settings.speed, settings.exerciseSpeeds, set.type, start, setTranscript, clearTimer, evaluateCurrentAttempt, handleReadTimeout]);
 
   useEffect(() => {
     if (phase !== 'listening') return;

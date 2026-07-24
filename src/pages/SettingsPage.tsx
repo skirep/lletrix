@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import styles from './SettingsPage.module.css';
-import type { Profile, FontSize, ColorScheme, SkinId, AppSettings } from '../models';
+import type { Profile, FontSize, ColorScheme, SkinId, AppSettings, ExerciseType } from '../models';
 
 interface SettingsPageProps {
   profile: Profile;
@@ -35,6 +35,13 @@ const READING_SPEEDS: { id: number; label: string }[] = [
   { id: 2, label: 'Normal (2s)' },
   { id: 4, label: 'Tranquil·la (4s)' },
   { id: 6, label: 'Molt tranquil·la (6s)' },
+];
+
+const EXERCISE_SPEED_TYPES: { id: ExerciseType; label: string }[] = [
+  { id: 'syllables', label: 'Síl·labes' },
+  { id: 'words', label: 'Paraules' },
+  { id: 'pseudowords', label: 'Pseudoparaules' },
+  { id: 'sentences', label: 'Frases' },
 ];
 
 export function SettingsPage({ profile, settings, onUpdateSettings: update, onUpdateProfile }: SettingsPageProps) {
@@ -201,19 +208,31 @@ export function SettingsPage({ profile, settings, onUpdateSettings: update, onUp
       <section className={`card ${styles.section}`}>
         <h2 className={styles.sectionTitle}>Velocitat de lectura</h2>
         <p className="text-muted" style={{ fontSize: '14px' }}>
-          Temps per llegir cada síl·laba, paraula o frase
+          Configura el temps per a cada tipus d&apos;exercici
         </p>
-        <div className={styles.optionGrid}>
-          {READING_SPEEDS.map((speed) => (
-            <button
-              key={speed.id}
-              className={`${styles.optBtn} ${settings.speed === speed.id ? styles.optSelected : ''}`}
-              onClick={() => void update({ speed: speed.id })}
-            >
-              {speed.label}
-            </button>
-          ))}
-        </div>
+        {EXERCISE_SPEED_TYPES.map((exerciseType) => (
+          <div key={exerciseType.id} style={{ marginTop: '14px' }}>
+            <p className="text-muted" style={{ fontSize: '14px', marginBottom: '8px' }}>
+              {exerciseType.label}
+            </p>
+            <div className={styles.optionGrid}>
+              {READING_SPEEDS.map((speed) => (
+                <button
+                  key={`${exerciseType.id}-${speed.id}`}
+                  className={`${styles.optBtn} ${settings.exerciseSpeeds[exerciseType.id] === speed.id ? styles.optSelected : ''}`}
+                  onClick={() => void update({
+                    exerciseSpeeds: {
+                      ...settings.exerciseSpeeds,
+                      [exerciseType.id]: speed.id,
+                    },
+                  })}
+                >
+                  {speed.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
       </section>
 
       {/* Dyslexia mode */}
